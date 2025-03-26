@@ -9,9 +9,11 @@
 
 #include <string>
 
-template <typename T>
-struct ASwapchain {
-    int32_t _width;
-    int32_t _height;
-    T swapchain;
-};
+namespace maverik {
+    template <typename T>
+    struct ASwapchain {
+        int32_t _width;
+        int32_t _height;
+        T swapchain;
+    };
+}
