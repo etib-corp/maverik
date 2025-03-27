@@ -33,3 +33,6 @@
 
 # Other files
 .vscode
+
+# Build directory
+build

@@ -9,7 +9,7 @@
 
 #include <string>
 #include <memory>
-
+#include <cstring>
 
 namespace maverik {
     class FileAsset {
@@ -28,7 +28,7 @@ namespace maverik {
 
             size_t read(void *ptr, size_t size, size_t count);
 
-            int seek(long offset, Seek whence);
+            int seek(long offset, Seek );
 
             size_t tell();
 

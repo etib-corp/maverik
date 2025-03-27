@@ -11,7 +11,7 @@
 
 #include <string>
 #include <map>
-#include <pair>
+#include <utility>
 #include <memory>
 
 namespace maverik {
@@ -25,7 +25,7 @@ namespace maverik {
             void removeAsset(const std::string &path);
 
             bool assetExists(const std::string &path) const;
-            std::shared_ptr<maverik::fileAsset> getAsset(const std::string &path) const;
+            std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path) const;
 
         protected:
             std::map<std::string, std::pair<std::string, size_t>> _assets;

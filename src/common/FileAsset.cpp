@@ -27,22 +27,22 @@ size_t maverik::FileAsset::read(void *ptr, size_t size, size_t count)
     size_t toRead = size * count;
     if (_pos + toRead > _size)
         toRead = _size - _pos;
-    memcpy(ptr, _content.c_str() + _pos, toRead);
+    std::memcpy(ptr, _content.c_str() + _pos, toRead);
     _pos += toRead;
     return toRead / size;
 }
 
-int mav::FileAsset::seek(long offset, int origin)
+int maverik::FileAsset::seek(long offset, Seek whence)
 {
-    switch (origin)
+    switch (whence)
     {
-    case SEEK_SET:
+    case FileAsset::Seek::SET:
         _pos = offset;
         break;
-    case SEEK_CUR:
+    case FileAsset::Seek::CUR:
         _pos += offset;
         break;
-    case SEEK_END:
+    case FileAsset::Seek::END:
         _pos = _size + offset;
         break;
     default:
@@ -51,7 +51,7 @@ int mav::FileAsset::seek(long offset, int origin)
     return 0;
 }
 
-long mav::FileAsset::tell()
+size_t maverik::FileAsset::tell()
 {
     return _pos;
 }
