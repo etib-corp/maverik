@@ -12,12 +12,17 @@
 
 namespace maverik {
     namespace xr {
-        class GraphicalContext : public AGraphicalContext {
+        class GraphicalContext : public maverik::AGraphicalContext {
             public:
                 GraphicalContext();
                 ~GraphicalContext();
 
+                void init() override;
+                void run() override;
+
                 std::vector<std::string> getInstanceExtensions() override;
+
+                void createInstance() override;
 
             protected:
             private:

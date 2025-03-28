@@ -7,7 +7,7 @@
 
 #include "xr/AndroidPlatform.hpp"
 
-maverik::xr::AndroidPlatform::AndroidPlatform(struct android_app *app)
+maverik::xr::AndroidPlatform::AndroidPlatform(std::shared_ptr<PlatformData> platformData)
 {
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
 
@@ -16,13 +16,13 @@ maverik::xr::AndroidPlatform::AndroidPlatform(struct android_app *app)
         XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid{};
         loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
         loaderInitInfoAndroid.next = nullptr;
-        loaderInitInfoAndroid.applicationVM = app->activity->vm;
-        loaderInitInfoAndroid.applicationContext = app->activity->clazz;
+        loaderInitInfoAndroid.applicationVM = platformData->applicationVM;
+        loaderInitInfoAndroid.applicationContext = platformData->applicationActivity;
         initializeLoader(reinterpret_cast<const XrLoaderInitInfoBaseHeaderKHR *>(&loaderInitInfoAndroid));
     }
     _instanceCreateInfoAndroid = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
-    _instanceCreateInfoAndroid.applicationActivity = app->activity->clazz;
-    _instanceCreateInfoAndroid.applicationVM = app->activity->vm;
+    _instanceCreateInfoAndroid.applicationActivity = platformData->applicationActivity;
+    _instanceCreateInfoAndroid.applicationVM = platformData->applicationVM;
 }
 
 maverik::xr::AndroidPlatform::~AndroidPlatform()
