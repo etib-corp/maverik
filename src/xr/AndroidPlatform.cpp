@@ -14,11 +14,11 @@ maverik::xr::AndroidPlatform::AndroidPlatform(struct android_app *app)
     if (xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction *)&initializeLoader) == XR_SUCCESS) {
 
         XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid{};
-        loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR
+        loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
         loaderInitInfoAndroid.next = nullptr;
         loaderInitInfoAndroid.applicationVM = app->activity->vm;
         loaderInitInfoAndroid.applicationContext = app->activity->clazz;
-        initialize_loader(reinterpret_cast<const XrLoaderInitInfoBaseHeaderKHR *>(&loader_init_info_android));
+        initializeLoader(reinterpret_cast<const XrLoaderInitInfoBaseHeaderKHR *>(&loaderInitInfoAndroid));
     }
     _instanceCreateInfoAndroid = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
     _instanceCreateInfoAndroid.applicationActivity = app->activity->clazz;
