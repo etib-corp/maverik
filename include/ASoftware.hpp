@@ -26,10 +26,6 @@ namespace maverik {
             std::string _appName;
             std::string _appVersion;
 
-            #if defined(XIDER_VK_IMPLEMENTATION)
-            std::shared_ptr<AGraphicalContext<VkInstance>> _graphicalContext;
-            #elif defined(XIDER_XR_IMPLEMENTATION)
-            std::shared_ptr<AGraphicalContext<XrInstance>> _graphicalContext;
-            #endif
+            std::shared_ptr<AGraphicalContext> _graphicalContext;
     };
 }
