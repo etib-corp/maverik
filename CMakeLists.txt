@@ -14,8 +14,6 @@ if(ENABLE_XR)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-    add_library(native_app_glue STATIC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
-    target_include_directories(native_app_glue PUBLIC ${ANDROID_NDK}/sources/android/native_app_glue)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
     file(GLOB_RECURSE SOURCES_XR "src/xr/*.cpp")
