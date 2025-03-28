@@ -13,19 +13,20 @@
 #include "xr/AndroidPlatform.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 namespace maverik {
     namespace xr {
         class Software : public ASoftware {
             public:
-                Software(struct android_app *app);
+                Software(std::shared_ptr<PlatformData> platformData);
                 ~Software();
 
                 void createInstance();
 
             protected:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
-                std::shared_ptr<AncroidPlatform> _platform;
+                std::shared_ptr<AndroidPlatform> _platform;
             private:
         };
 
