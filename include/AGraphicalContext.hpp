@@ -11,21 +11,24 @@
 #include "ARenderingContext.hpp"
 
 #include <memory>
+#include <string>
 
 
 namespace maverik {
-    template <typename T>
     class AGraphicalContext {
         public:
             virtual ~AGraphicalContext() = default;
 
             virtual void init() = 0;
             virtual void run() = 0;
+
+            virtual std::vector<std::string> getInstanceExtensions() = 0;
+
         protected:
             virtual void createInstance() = 0;
 
             std::shared_ptr<ARenderingContext> _renderingContext;
             std::shared_ptr<ASwapchainContext> _swapchainContext;
-            T _instance;
+            VkInstance _instance = VK_NULL_HANDLE;
     };
 }
