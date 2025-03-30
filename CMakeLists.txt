@@ -8,8 +8,6 @@ include(FetchContent)
 
 file(GLOB_RECURSE SOURCES_COMMON "src/common/*.cpp")
 
-message("ENABLE_XR: ${ENABLE_XR}")
-
 FetchContent_Declare(glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
     GIT_TAG 1.0.1
@@ -18,7 +16,11 @@ FetchContent_Declare(glm
 )
 FetchContent_MakeAvailable(glm)
 
+
 if(ENABLE_XR)
+
+    option(LIBRARY_TYPE "Build as a shared library" ON)
+
     set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
@@ -36,8 +38,12 @@ if(ENABLE_XR)
 
     file(GLOB_RECURSE SOURCES_XR "src/xr/*.cpp")
 
-    add_library(maverik SHARED ${SOURCES_COMMON} ${SOURCES_XR})
-
+    if(LIBRARY_TYPE)
+        add_library(maverik SHARED ${SOURCES_COMMON} ${SOURCES_XR})
+    else()
+        add_library(maverik STATIC ${SOURCES_COMMON} ${SOURCES_XR})
+    endif()
+    
     target_link_libraries(maverik OpenXR::headers)
 
 else()
@@ -47,7 +53,7 @@ else()
     file(GLOB_RECURSE SOURCES_VK "src/vk/*.cpp")
 
     add_executable(maverik ${SOURCES_COMMON} ${SOURCES_VK})
-
-
 endif()
+
+target_include_directories(maverik PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
