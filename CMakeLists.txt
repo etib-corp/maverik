@@ -25,8 +25,6 @@ if(ENABLE_XR)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
-
     FetchContent_Declare(OpenXR-SDK
         GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK.git
         GIT_TAG release-1.0.33 #must match the meta quest loader OpenXR version
@@ -43,9 +41,8 @@ if(ENABLE_XR)
     else()
         add_library(maverik STATIC ${SOURCES_COMMON} ${SOURCES_XR})
     endif()
-    
-    target_link_libraries(maverik OpenXR::headers)
 
+    target_link_libraries(maverik PRIVATE openxr_loader)
 else()
     set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
