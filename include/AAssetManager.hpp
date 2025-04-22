@@ -9,27 +9,27 @@
 
 #include "FileAsset.hpp"
 
-#include <string>
 #include <map>
-#include <utility>
 #include <memory>
+#include <string>
+#include <utility>
 
 namespace maverik {
     class AAssetManager {
         public:
-            virtual ~AAssetManager() = default;
+        virtual ~AAssetManager() = default;
 
-            virtual void addAsset(const std::string &path) = 0;
-            void addAsset(const std::string &path, const std::string& content);
+        virtual void addAsset(const std::string &path) = 0;
+        void addAsset(const std::string &path, const std::string &content);
 
-            void removeAsset(const std::string &path);
+        void removeAsset(const std::string &path);
 
-            bool assetExists(const std::string &path) const;
-            std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path) const;
+        bool assetExists(const std::string &path) const;
+        std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path) const;
 
         protected:
-            std::map<std::string, std::pair<std::string, size_t>> _assets;
+        std::map<std::string, std::pair<std::string, size_t>> _assets;
 
         private:
     };
-} // namespace maverik
+}    // namespace maverik
