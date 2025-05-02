@@ -47,6 +47,8 @@ else()
     set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+    include_directories("include" "include/vk")
+
     file(GLOB_RECURSE SOURCES_VK "src/vk/*.cpp")
 
     add_executable(maverik ${SOURCES_COMMON} ${SOURCES_VK})
