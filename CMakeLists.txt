@@ -58,6 +58,8 @@ else()
     )
     FetchContent_MakeAvailable(glfw)
 
+    include_directories("include" "include/vk")
+
     file(GLOB_RECURSE SOURCES_VK "src/vk/*.cpp")
 
     add_library(maverik ${SOURCES_COMMON} ${SOURCES_VK})
