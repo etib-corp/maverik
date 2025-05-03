@@ -42,7 +42,8 @@ namespace maverik {
                 /**
                  * @brief Adds an asset to the manager.
                  * @param path The path to the asset.
-                 * @return A shared pointer to the FileAsset object.
+                 * @return A shared pointer to the FileAsset object. If the file can't be opened,
+                 *         it returns a nullptr and logs an error message.
                  */
                 std::shared_ptr<maverik::FileAsset> addAsset(const std::string &path) override;
         };

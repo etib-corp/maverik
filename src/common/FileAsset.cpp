@@ -1,13 +1,13 @@
 /*
 ** ETIB PROJECT, 2025
-** Visual Studio Live Share (Workspace)
+** maverik
 ** File description:
 ** FileAsset
 */
 
 #include "FileAsset.hpp"
 
-maverik::FileAsset::FileAsset(const std::ustring& content)
+maverik::FileAsset::FileAsset(std::ustring& content)
     : _content(content)
 {
 }

@@ -16,7 +16,7 @@ std::shared_ptr<maverik::FileAsset> maverik::vk::AssetsManager::addAsset(const s
 
     if (!file.is_open()) {
         std::cerr << "Failed to open file: " << path << std::endl; // TODO use custom logger.
-        return std::make_shared<maverik::FileAsset>(std::ustring());
+        return nullptr;
     }
     std::ustring content((std::istreambuf_iterator<unsigned char>(file)), std::istreambuf_iterator<unsigned char>());
     file.close();
