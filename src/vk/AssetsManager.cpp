@@ -9,9 +9,8 @@
 
 std::shared_ptr<maverik::FileAsset> maverik::vk::AssetsManager::addAsset(const std::string &path)
 {
-    // TODO: return a reference to the asset instead of a copy.
     if (assetExists(path)) {
-        return std::make_shared<maverik::FileAsset>(_assets.at(path));
+        return std::make_shared<maverik::FileAsset>(_assets[path]);
     }
     std::uifstream file(path, std::ios::binary);
 
