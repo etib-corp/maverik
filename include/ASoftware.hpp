@@ -10,21 +10,18 @@
 #include "vulkan.hpp"
 #include "AGraphicalContext.hpp"
 
+#include "Version.hpp"
+
 namespace maverik {
     class ASoftware {
         public:
             virtual ~ASoftware() = default;
 
-            const std::string &getAppName() const {
-                return _appName;
-            }
-
-            const std::string &getAppVersion() const {
-                return _appVersion;
-            }
         protected:
             std::string _appName;
-            std::string _appVersion;
+            Version *_appVersion;
+            std::string _engineName;
+            Version *_engineVersion;
 
             std::shared_ptr<AGraphicalContext> _graphicalContext;
     };
