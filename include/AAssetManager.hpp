@@ -59,10 +59,8 @@ namespace maverik {
              * @param path The path to the asset.
              *
              * This method removes the asset from the _assets map.
-             * Using this method, the asset is not deleted, but only removed from the map. <--  // ! this line need to be removed when TODO is done.
              * Using a deleted asset will result in undefined behavior.
              */
-            // TODO: Edit docs when a reference is returned instead of a copy.
             void removeAsset(const std::string &path);
 
             /**
@@ -82,7 +80,7 @@ namespace maverik {
              * This method retrieves the asset from the _assets map.
              * If the asset does not exist, it returns a nullptr.
              */
-            std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path) const;
+            std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path);
 
         protected:
             std::map<std::string, std::ustring> _assets;     ///> The map of assets, where the key is the path and the value is the content
