@@ -6,7 +6,7 @@ option(ENABLE_XR "Enable XR" OFF)
 include_directories(include)
 include(FetchContent)
 
-file(GLOB_RECURSE SOURCES_COMMON "src/common/*.cpp")
+file(GLOB_RECURSE SOURCES_COMMON "src/common/*.cpp" "src/Version.cpp")
 
 FetchContent_Declare(glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
@@ -16,9 +16,12 @@ FetchContent_Declare(glm
 )
 FetchContent_MakeAvailable(glm)
 
+if(APPLE)
+    include_directories(/opt/homebrew/include)
+    link_directories(/opt/homebrew/lib)
+endif()
 
 if(ENABLE_XR)
-
     option(LIBRARY_TYPE "Build as a shared library" ON)
 
     set(CMAKE_CXX_STANDARD 20)
@@ -47,11 +50,21 @@ else()
     set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+    FetchContent_Declare(glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.3.8
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable(glfw)
+
     include_directories("include" "include/vk")
 
     file(GLOB_RECURSE SOURCES_VK "src/vk/*.cpp")
 
-    add_executable(maverik ${SOURCES_COMMON} ${SOURCES_VK})
+    add_library(maverik ${SOURCES_COMMON} ${SOURCES_VK})
+
+    target_link_libraries(maverik PRIVATE glfw)
 endif()
 
 target_include_directories(maverik PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
