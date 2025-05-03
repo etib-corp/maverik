@@ -24,7 +24,12 @@ namespace maverik {
 
                 void createInstance() override;
 
+                void setXRInstance(XrInstance instance) { _XRinstance = instance; }
+                void setXRSystemID(XrSystemId systemID) { _XRsystemID = systemID; }
+
             protected:
+                XrInstance _XRinstance = XR_NULL_HANDLE;
+                XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
             private:
         };
     }

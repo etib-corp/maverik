@@ -26,6 +26,7 @@ namespace maverik {
 
             protected:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
+                XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
                 std::shared_ptr<AndroidPlatform> _platform;
             private:
         };

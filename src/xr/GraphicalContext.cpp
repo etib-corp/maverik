@@ -30,4 +30,58 @@ std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
 
 void maverik::xr::GraphicalContext::createInstance()
 {
+    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{};
+    PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
+    PFN_xrCreateVulkanInstanceKHR xrCreateVulkanInstanceKHR = nullptr;
+
+    graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_2_KHR;
+    if (xrGetInstanceProcAddr(_XRinstance, "xrGetVulkanGraphicsRequirements2KHR",
+        reinterpret_cast<PFN_xrVoidFunction *>(&xrGetVulkanGraphicsRequirements2KHR)) != XR_SUCCESS) {
+        return;
+    }
+    if (xrGetVulkanGraphicsRequirements2KHR(_XRinstance, _XRsystemID, &graphicsRequirements) != XR_SUCCESS) {
+        return;
+    }
+    if (xrGetInstanceProcAddr(_XRinstance, "xrCreateVulkanInstanceKHR",
+        reinterpret_cast<PFN_xrVoidFunction *>(&xrCreateVulkanInstanceKHR)) != XR_SUCCESS) {
+        return;
+    }
+
+    std::vector<const char *> layers{};
+    std::vector<const char *> extensions{};
+
+    XrApplicationInfo appInfo{};
+    appInfo.type = XR_TYPE_APPLICATION_INFO;
+    appInfo.next = nullptr;
+    appInfo.applicationName = "maverik";
+    appInfo.applicationVersion = 1;
+    appInfo.engineName = "maverik";
+    appInfo.engineVersion = 1;
+    appInfo.apiVersion = XR_CURRENT_API_VERSION;
+
+    VkInstanceCreateInfo vkCreateInfo{};
+    vkCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    vkCreateInfo.pNext = nullptr;
+    vkCreateInfo.flags = 0;
+    vkCreateInfo.pApplicationInfo = &appInfo;
+    vkCreateInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+    vkCreateInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
+    vkCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    vkCreateInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
+
+    XrVulkanInstanceCreateInfoKHR vkInstanceCreateInfo{};
+    vkInstanceCreateInfo.type = XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR;
+    vkInstanceCreateInfo.systemId = _XRsystemID;
+    vkInstanceCreateInfo.createFlags = 0;
+    vkInstanceCreateInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    vkInstanceCreateInfo.vulkanCreateInfo = &vkCreateInfo;
+    vkInstanceCreateInfo.vulkanAllocator = nullptr;
+
+    VkResult result = VK_SUCCESS;
+    if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &result) != XR_SUCCESS) {
+        return;
+    }
+    if (result != VK_SUCCESS) {
+        return;
+    }
 }

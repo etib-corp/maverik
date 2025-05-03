@@ -42,4 +42,15 @@ void maverik::xr::Software::createInstance()
     if (xrCreateInstance(&createInfo, &_XRinstance) != XR_SUCCESS) {
         return;
     }
+
+    XrSystemGetInfo systemInfo{};
+    systemInfo.type = XR_TYPE_SYSTEM_GET_INFO;
+    systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+    if (xrGetSystem(_XRinstance, &systemInfo, &_XRsystemID) != XR_SUCCESS) {
+        return;
+    }
+    _graphicalContext->setXRInstance(_XRinstance);
+    _graphicalContext->setXRSystemID(_XRsystemID);
+
+    _graphicalContext->createInstance();
 }
