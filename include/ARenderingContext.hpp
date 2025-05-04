@@ -13,6 +13,9 @@ namespace maverik {
     class ARenderingContext {
         public:
             virtual ~ARenderingContext() = default;
+
+            virtual void init() = 0;
+
         protected:
             VkDevice _logicalDevice;
             VkPhysicalDevice _physicalDevice;

@@ -7,8 +7,10 @@
 
 #include "xr/GraphicalContext.hpp"
 
-maverik::xr::GraphicalContext::GraphicalContext()
+maverik::xr::GraphicalContext::GraphicalContext(XrInstance instance, XrSystemId systemID)
+    : _XRinstance(instance), _XRsystemID(systemID)
 {
+    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_XRinstance, _XRsystemID);
 }
 
 maverik::xr::GraphicalContext::~GraphicalContext()
@@ -37,13 +39,16 @@ void maverik::xr::GraphicalContext::createInstance()
     graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_2_KHR;
     if (xrGetInstanceProcAddr(_XRinstance, "xrGetVulkanGraphicsRequirements2KHR",
         reinterpret_cast<PFN_xrVoidFunction *>(&xrGetVulkanGraphicsRequirements2KHR)) != XR_SUCCESS) {
+        std::cerr << "Failed to get xrGetVulkanGraphicsRequirements2KHR function" << std::endl;
         return;
     }
     if (xrGetVulkanGraphicsRequirements2KHR(_XRinstance, _XRsystemID, &graphicsRequirements) != XR_SUCCESS) {
+        std::cerr << "Failed to get Vulkan graphics requirements" << std::endl;
         return;
     }
     if (xrGetInstanceProcAddr(_XRinstance, "xrCreateVulkanInstanceKHR",
         reinterpret_cast<PFN_xrVoidFunction *>(&xrCreateVulkanInstanceKHR)) != XR_SUCCESS) {
+        std::cerr << "Failed to get xrCreateVulkanInstanceKHR function" << std::endl;
         return;
     }
 
@@ -79,9 +84,12 @@ void maverik::xr::GraphicalContext::createInstance()
 
     VkResult result = VK_SUCCESS;
     if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &result) != XR_SUCCESS) {
+        std::cerr << "Failed to create Vulkan instance" << std::endl;
         return;
     }
     if (result != VK_SUCCESS) {
+        std::cerr << "Failed to create Vulkan instance: " << result << std::endl;
         return;
     }
+    _renderingContext->init();
 }

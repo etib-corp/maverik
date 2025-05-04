@@ -10,7 +10,7 @@
 maverik::xr::Software::Software(std::shared_ptr<PlatformData> platformData)
 {
     _platform = std::make_shared<AndroidPlatform>(platformData);
-    _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>();
+    _graphicalContext = nullptr;
 }
 
 maverik::xr::Software::~Software()
@@ -40,6 +40,7 @@ void maverik::xr::Software::createInstance()
     createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
     if (xrCreateInstance(&createInfo, &_XRinstance) != XR_SUCCESS) {
+        std::cerr << "Failed to create XR instance" << std::endl;
         return;
     }
 
@@ -47,10 +48,10 @@ void maverik::xr::Software::createInstance()
     systemInfo.type = XR_TYPE_SYSTEM_GET_INFO;
     systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
     if (xrGetSystem(_XRinstance, &systemInfo, &_XRsystemID) != XR_SUCCESS) {
+        std::cerr << "Failed to get XR system ID" << std::endl;
         return;
     }
-    _graphicalContext->setXRInstance(_XRinstance);
-    _graphicalContext->setXRSystemID(_XRsystemID);
 
+    _renderingContext = std::make_shared<RenderingContext>(_XRinstance, _XRsystemID);
     _graphicalContext->createInstance();
 }

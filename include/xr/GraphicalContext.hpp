@@ -9,12 +9,13 @@
 
 #include "xr/Openxr-include.hpp"
 #include "AGraphicalContext.hpp"
+#include "xr/RenderingContext.hpp"
 
 namespace maverik {
     namespace xr {
         class GraphicalContext : public maverik::AGraphicalContext {
             public:
-                GraphicalContext();
+                GraphicalContext(XrInstance instance, XrSystemId systemID);
                 ~GraphicalContext();
 
                 void init() override;
@@ -23,9 +24,6 @@ namespace maverik {
                 std::vector<std::string> getInstanceExtensions() override;
 
                 void createInstance() override;
-
-                void setXRInstance(XrInstance instance) { _XRinstance = instance; }
-                void setXRSystemID(XrSystemId systemID) { _XRsystemID = systemID; }
 
             protected:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
