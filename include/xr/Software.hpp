@@ -19,13 +19,15 @@ namespace maverik {
     namespace xr {
         class Software : public ASoftware {
             public:
-                Software(std::shared_ptr<PlatformData> platformData);
+                Software(const std::shared_ptr<PlatformData> &platformData);
                 ~Software();
 
                 void createInstance();
 
             protected:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
+                XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
+                XrSession _XRsession = XR_NULL_HANDLE;
                 std::shared_ptr<AndroidPlatform> _platform;
             private:
         };

@@ -24,6 +24,14 @@ namespace maverik {
 
             virtual std::vector<std::string> getInstanceExtensions() = 0;
 
+            const std::shared_ptr<VulkanContext>& getVulkanContext() const {
+                return _renderingContext->getVulkanContext();
+            }
+
+            const VkInstance& getInstance() const {
+                return _instance;
+            }
+
         protected:
             virtual void createInstance() = 0;
 
