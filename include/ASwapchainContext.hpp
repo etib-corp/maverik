@@ -16,6 +16,7 @@ namespace maverik {
     class ASwapchainContext {
         public:
             virtual ~ASwapchainContext() = default;
+
         protected:
             std::vector<VkImageView> _imageViews;
             VkFormat _swapchainFormat;
@@ -23,9 +24,9 @@ namespace maverik {
             std::vector<VkFramebuffer> _swapchainFramebuffers;
 
             #if defined(XIDER_VK_IMPLEMENTATION)
-            ASwapchain<VkSwapchainKHR> _swapchain;
+                ASwapchain<VkSwapchainKHR> _swapchain;
             #elif defined(XIDER_XR_IMPLEMENTATION)
-            ASwapchain<XrSwapchain> _swapchain;
+                ASwapchain<XrSwapchain> _swapchain;
             #endif
     };
 }
