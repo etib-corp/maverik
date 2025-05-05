@@ -11,6 +11,22 @@
 // Public methods //
 ////////////////////
 
+/**
+ * @brief Constructs a SwapchainContext object and initializes Vulkan resources.
+ *
+ * This constructor sets up the swapchain context by initializing the Vulkan surface,
+ * physical device, logical device, and window. It also creates the necessary resources
+ * for rendering, including color resources, depth resources, and framebuffers.
+ *
+ * @param surface The Vulkan surface handle associated with the swapchain.
+ * @param physicalDevice The Vulkan physical device used for rendering.
+ * @param logicalDevice The Vulkan logical device used for rendering.
+ * @param window A pointer to the GLFW window associated with the swapchain.
+ * @param msaaSamples The number of samples for multisample anti-aliasing (MSAA).
+ * @param commandPool The Vulkan command pool used for command buffer allocation.
+ * @param graphicsQueue The Vulkan graphics queue used for rendering commands.
+ * @param renderPass The Vulkan render pass used for rendering operations.
+ */
 maverik::vk::SwapchainContext::SwapchainContext(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue, VkRenderPass renderPass)
 {
     this->init(surface, physicalDevice, logicalDevice, window);
@@ -20,10 +36,31 @@ maverik::vk::SwapchainContext::SwapchainContext(VkSurfaceKHR surface, VkPhysical
     this->createFramebuffers(logicalDevice, renderPass);
 }
 
+/**
+ * @brief Destructor for the SwapchainContext class.
+ *
+ * Cleans up Vulkan resources associated with the swapchain context.
+ */
 maverik::vk::SwapchainContext::~SwapchainContext()
 {
 }
 
+/**
+ * @brief Recreates the Vulkan swapchain and associated resources.
+ *
+ * This function handles the recreation of the swapchain and its dependent resources
+ * when the window is resized or other conditions require a swapchain update. It ensures
+ * that the Vulkan device is idle before performing cleanup and reinitialization.
+ *
+ * @param surface The Vulkan surface associated with the swapchain.
+ * @param physicalDevice The Vulkan physical device used for resource creation.
+ * @param logicalDevice The Vulkan logical device used for operations.
+ * @param window The GLFW window handle associated with the application.
+ * @param msaaSamples The number of samples used for multisampling (MSAA).
+ * @param commandPool The Vulkan command pool used for command buffer allocation.
+ * @param graphicsQueue The Vulkan graphics queue used for rendering operations.
+ * @param renderPass The Vulkan render pass used for rendering.
+ */
 void maverik::vk::SwapchainContext::recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue, VkRenderPass renderPass)
 {
     int width = 0;
@@ -48,6 +85,21 @@ void maverik::vk::SwapchainContext::recreate(VkSurfaceKHR surface, VkPhysicalDev
 // Protected methods //
 ///////////////////////
 
+/**
+ * @brief Initializes the Vulkan swapchain context.
+ *
+ * This function sets up the Vulkan swapchain, which is responsible for managing
+ * the images that are presented to the screen. It configures the swapchain based
+ * on the provided surface, physical device, logical device, and window, and creates
+ * the necessary image views for rendering.
+ *
+ * @param surface The Vulkan surface to present images to.
+ * @param physicalDevice The Vulkan physical device (GPU) to use.
+ * @param logicalDevice The Vulkan logical device associated with the physical device.
+ * @param window The GLFW window handle used to determine the swapchain extent.
+ *
+ * @throws std::runtime_error If the swapchain creation fails.
+ */
 void maverik::vk::SwapchainContext::init(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window)
 {
     Utils::SwapChainSupportDetails swapChainSupport = Utils::querySwapChainSupport(physicalDevice, surface);
@@ -104,7 +156,16 @@ void maverik::vk::SwapchainContext::init(VkSurfaceKHR surface, VkPhysicalDevice 
     this->createImageViews(logicalDevice);
 }
 
-
+/**
+ * @brief Creates image views for all swapchain images.
+ *
+ * This function resizes the `_imageViews` vector to match the size of the `_swapchainImages` vector
+ * and initializes each image view by calling the `createImageView` method. The image views are
+ * created with the specified swapchain format and color aspect, and are associated with the provided
+ * logical Vulkan device.
+ *
+ * @param logicalDevice The Vulkan logical device used to create the image views.
+ */
 void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
 {
     _imageViews.resize(_swapchainImages.size());
@@ -114,6 +175,24 @@ void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
     }
 }
 
+/**
+ * @brief Creates a Vulkan image view for a given image.
+ *
+ * This function sets up and creates a Vulkan image view, which is used to
+ * describe how an image resource should be accessed. It specifies the format,
+ * view type, and subresource range for the image view.
+ *
+ * @param image The Vulkan image for which the image view is created.
+ * @param format The format of the image view (e.g., VK_FORMAT_R8G8B8A8_SRGB).
+ * @param aspectFlags Specifies which aspect(s) of the image are included in the view 
+ *                    (e.g., VK_IMAGE_ASPECT_COLOR_BIT for color images).
+ * @param mipLevels The number of mipmap levels to include in the view.
+ * @param logicalDevice The Vulkan logical device used to create the image view.
+ *
+ * @return A VkImageView handle representing the created image view.
+ *
+ * @throws std::runtime_error If the image view creation fails.
+ */
 VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkDevice logicalDevice)
 {
     VkImageViewCreateInfo viewInfo{};
@@ -136,6 +215,19 @@ VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkForm
     return imageView;
 }
 
+/**
+ * @brief Creates framebuffers for the swapchain images.
+ *
+ * This function initializes a framebuffer for each image view in the swapchain.
+ * Each framebuffer is configured with a color attachment, a depth attachment,
+ * and the corresponding swapchain image view. The framebuffers are stored in
+ * the `_swapchainFramebuffers` member variable.
+ *
+ * @param renderPass The Vulkan render pass to be used with the framebuffers.
+ * @param logicalDevice The Vulkan logical device used to create the framebuffers.
+ *
+ * @throws std::runtime_error If framebuffer creation fails.
+ */
 void maverik::vk::SwapchainContext::createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice)
 {
     _swapchainFramebuffers.resize(_imageViews.size());
@@ -162,6 +254,15 @@ void maverik::vk::SwapchainContext::createFramebuffers(VkRenderPass renderPass, 
     }
 }
 
+/**
+ * @brief Cleans up Vulkan resources associated with the swapchain context.
+ *
+ * This function destroys all framebuffers, image views, and the swapchain
+ * associated with the swapchain context. It ensures proper resource
+ * deallocation to prevent memory leaks.
+ *
+ * @param logicalDevice The Vulkan logical device used to destroy the resources.
+ */
 void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
 {
     for (auto framebuffer : _swapchainFramebuffers) {
@@ -179,6 +280,19 @@ void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
 // Private methods //
 /////////////////////
 
+/**
+ * @brief Chooses the most suitable surface format for the swapchain.
+ *
+ * This function iterates through the list of available surface formats and
+ * selects the one that best matches the desired format and color space.
+ * If the preferred format (VK_FORMAT_B8G8R8A8_SRGB) and color space
+ * (VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) are available, it returns that format.
+ * Otherwise, it defaults to the first available format in the list.
+ *
+ * @param availableFormats A vector of VkSurfaceFormatKHR structures representing
+ *                         the formats supported by the surface.
+ * @return VkSurfaceFormatKHR The chosen surface format.
+ */
 VkSurfaceFormatKHR maverik::vk::SwapchainContext::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
     for (const auto& availableFormat : availableFormats) {
@@ -189,6 +303,20 @@ VkSurfaceFormatKHR maverik::vk::SwapchainContext::chooseSwapSurfaceFormat(const 
     return availableFormats[0];
 }
 
+/**
+ * @brief Chooses the most suitable Vulkan present mode for the swapchain.
+ *
+ * This function iterates through the list of available present modes and selects
+ * the most optimal one based on predefined preferences. The preferred present mode
+ * is `VK_PRESENT_MODE_MAILBOX_KHR` due to its low latency and ability to avoid tearing.
+ * If the preferred mode is not available, it falls back to `VK_PRESENT_MODE_FIFO_KHR`,
+ * which is guaranteed to be supported and ensures vertical synchronization.
+ *
+ * @param availablePresentModes A vector containing the list of present modes supported
+ *                              by the Vulkan surface.
+ * @return VkPresentModeKHR The chosen present mode. Returns `VK_PRESENT_MODE_MAILBOX_KHR`
+ *                          if available, otherwise defaults to `VK_PRESENT_MODE_FIFO_KHR`.
+ */
 VkPresentModeKHR maverik::vk::SwapchainContext::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
     for (const auto& availablePresentMode : availablePresentModes) {
@@ -200,6 +328,24 @@ VkPresentModeKHR maverik::vk::SwapchainContext::chooseSwapPresentMode(const std:
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
+/**
+ * @brief Chooses the appropriate swap extent for the Vulkan swapchain.
+ *
+ * This function determines the dimensions of the swapchain images based on the
+ * surface capabilities and the size of the window's framebuffer. If the current
+ * extent of the surface capabilities is not set to the special value
+ * `std::numeric_limits<uint32_t>::max()`, it directly returns the current extent.
+ * Otherwise, it queries the framebuffer size of the given GLFW window and clamps
+ * the dimensions to fit within the minimum and maximum image extents specified
+ * by the surface capabilities.
+ *
+ * @param capabilities The surface capabilities that describe the supported
+ *                      properties of the Vulkan surface.
+ * @param window        A pointer to the GLFW window associated with the Vulkan
+ *                      surface.
+ * @return VkExtent2D   The chosen swap extent, which specifies the width and
+ *                      height of the swapchain images.
+ */
 VkExtent2D maverik::vk::SwapchainContext::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow *window)
 {
     int width = 0;
@@ -221,6 +367,16 @@ VkExtent2D maverik::vk::SwapchainContext::chooseSwapExtent(const VkSurfaceCapabi
     return actualExtent;
 }
 
+/**
+ * @brief Creates color resources for the swapchain, including a color image and its associated image view.
+ *
+ * This function initializes a color image with the specified format, extent, and sample count, and allocates
+ * memory for it. Additionally, it creates an image view for the color image to be used in rendering operations.
+ *
+ * @param logicalDevice The Vulkan logical device used to create the image and image view.
+ * @param physicalDevice The Vulkan physical device used to allocate memory for the image.
+ * @param msaaSamples The number of samples per pixel for multisampling (MSAA).
+ */
 void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples)
 {
     VkFormat colorFormat = _swapchainFormat;
@@ -229,6 +385,19 @@ void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice,
     _colorImageView = this->createImageView(_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, logicalDevice);
 }
 
+/**
+ * @brief Creates the depth resources required for the Vulkan swapchain.
+ *
+ * This function initializes the depth image, allocates memory for it, creates
+ * an image view for the depth image, and transitions the image layout to be
+ * suitable for use as a depth-stencil attachment.
+ *
+ * @param logicalDevice The Vulkan logical device used for resource creation.
+ * @param physicalDevice The Vulkan physical device used to query depth format and memory properties.
+ * @param commandPool The command pool used to allocate command buffers for image layout transitions.
+ * @param graphicsQueue The graphics queue used to execute the image layout transition commands.
+ * @param msaaSamples The number of samples per pixel for multisampling (MSAA).
+ */
 void maverik::vk::SwapchainContext::createDepthResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkSampleCountFlagBits msaaSamples)
 {
     VkFormat depthFormat = Utils::findDepthFormat(physicalDevice);
@@ -238,6 +407,20 @@ void maverik::vk::SwapchainContext::createDepthResources(VkDevice logicalDevice,
     Utils::transitionImageLayout(logicalDevice, commandPool, graphicsQueue, _depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
 
+/**
+ * @brief Creates framebuffers for the swapchain images.
+ *
+ * This function initializes a framebuffer for each image view in the swapchain.
+ * Each framebuffer is configured with a color attachment, a depth attachment,
+ * and the corresponding swapchain image view. The framebuffers are stored in
+ * the `_swapchainFramebuffers` member variable.
+ *
+ * @param renderPass The Vulkan render pass to be used with the framebuffers.
+ * @param logicalDevice The Vulkan logical device used to create the framebuffers.
+ *
+ * @throws std::runtime_error If framebuffer creation fails.
+ *
+ */
 void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass)
 {
     _swapchainFramebuffers.resize(_imageViews.size());

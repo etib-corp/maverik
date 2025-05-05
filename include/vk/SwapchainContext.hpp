@@ -18,28 +18,34 @@ namespace maverik {
             public:
                 // Contructors
                 SwapchainContext(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue, VkRenderPass renderPass);
+
+                // Destructor
                 ~SwapchainContext();
 
                 void recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue, VkRenderPass renderPass);
 
             protected:
+                // In addition to the base swapchain
                 std::vector<VkImage> _swapchainImages;
 
+                void createImageViews(VkDevice logicalDevice);
+
+                // Depth images
                 VkImage _depthImage;
                 VkDeviceMemory _depthImageMemory;
                 VkImageView _depthImageView;
 
+                // Color images
                 VkImage _colorImage;
                 VkDeviceMemory _colorImageMemory;
                 VkImageView _colorImageView;
 
+                // Used to create the swapchain
                 void init(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window);
 
-                void createImageViews(VkDevice logicalDevice);
-                VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkDevice logicalDevice);
-                void createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
-
                 void cleanup(VkDevice logicalDevice);
+
+                void createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
 
             private:
                 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -50,6 +56,7 @@ namespace maverik {
                 void createDepthResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkSampleCountFlagBits msaaSamples);
                 void createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass);
 
+                VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkDevice logicalDevice);
 
         };
     }
