@@ -7,6 +7,22 @@
 
 #include "vk/Utils.hpp"
 
+/**
+* @brief Queries the swap chain support details for a given physical device and surface.
+*
+* This function retrieves the capabilities, supported surface formats, and present modes
+* of the swap chain for the specified Vulkan physical device and surface. The results
+* are stored in a SwapChainSupportDetails structure.
+*
+* @param device The Vulkan physical device to query.
+* @param surface The Vulkan surface to query.
+* @return A SwapChainSupportDetails structure containing the swap chain support details.
+*
+* The returned structure includes:
+* - Capabilities: The surface capabilities (e.g., min/max image count, current extent, etc.).
+* - Formats: A list of supported surface formats (e.g., pixel format and color space).
+* - Present Modes: A list of supported presentation modes (e.g., FIFO, Mailbox, etc.).
+*/
 maverik::vk::Utils::SwapChainSupportDetails maverik::vk::Utils::querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     SwapChainSupportDetails details;
@@ -28,6 +44,17 @@ maverik::vk::Utils::SwapChainSupportDetails maverik::vk::Utils::querySwapChainSu
     return details;
 }
 
+/**
+* @brief Finds the queue families that support specific operations on a given Vulkan physical device and surface.
+*
+* This function identifies the queue families that support graphics operations and presentation to a given surface.
+* It iterates through the queue families of the specified physical device and checks their capabilities.
+*
+* @param device The Vulkan physical device to query for queue family properties.
+* @param surface The Vulkan surface to check for presentation support.
+* @return QueueFamilyIndices A structure containing the indices of the graphics and presentation queue families.
+*         If no suitable queue families are found, the indices will remain incomplete.
+*/
 maverik::vk::Utils::QueueFamilyIndices maverik::vk::Utils::findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     QueueFamilyIndices indices;
@@ -61,6 +88,22 @@ maverik::vk::Utils::QueueFamilyIndices maverik::vk::Utils::findQueueFamilies(VkP
     return indices;
 }
 
+/**
+* @brief Finds a suitable memory type for a Vulkan resource.
+*
+* This function searches through the memory types available on the given physical device
+* and returns the index of a memory type that satisfies the specified type filter and
+* memory property flags.
+*
+* @param physicalDevice The Vulkan physical device to query for memory properties.
+* @param typeFilter A bitmask specifying the acceptable memory types. Each bit represents
+*                   a memory type, and the function will check which types are suitable.
+* @param properties A set of memory property flags that the desired memory type must have.
+*                   For example, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or 
+*                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.
+* @return The index of a suitable memory type.
+* @throws std::runtime_error If no suitable memory type is found.
+*/
 uint32_t maverik::vk::Utils::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -75,6 +118,25 @@ uint32_t maverik::vk::Utils::findMemoryType(VkPhysicalDevice physicalDevice, uin
     throw std::runtime_error("Failed to find suitable memory type!");
 }
 
+/**
+* @brief Finds a suitable depth format for a Vulkan physical device.
+*
+* This function determines the most appropriate depth format supported by the given
+* Vulkan physical device. It checks a list of candidate formats in order of preference
+* and ensures that the selected format supports the specified tiling and feature requirements.
+*
+* @param physicalDevice The Vulkan physical device to query for supported formats.
+* @return VkFormat The selected depth format that meets the requirements.
+*
+* The function prioritizes the following formats (in order):
+* - VK_FORMAT_D32_SFLOAT
+* - VK_FORMAT_D32_SFLOAT_S8_UINT
+* - VK_FORMAT_D24_UNORM_S8_UINT
+*
+* The selected format must support:
+* - VK_IMAGE_TILING_OPTIMAL
+* - VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+*/
 VkFormat maverik::vk::Utils::findDepthFormat(VkPhysicalDevice physicalDevice)
 {
     return findSupportedFormat(
@@ -85,6 +147,28 @@ VkFormat maverik::vk::Utils::findDepthFormat(VkPhysicalDevice physicalDevice)
     );
 }
 
+/**
+* @brief Creates a Vulkan image and allocates memory for it.
+*
+* This function initializes a Vulkan image with the specified parameters, allocates
+* the required memory, and binds the memory to the image. It is a utility function
+* to simplify Vulkan image creation.
+*
+* @param logicalDevice The Vulkan logical device used to create the image.
+* @param physicalDevice The Vulkan physical device used to find memory properties.
+* @param width The width of the image in pixels.
+* @param height The height of the image in pixels.
+* @param mipLevels The number of mipmap levels for the image.
+* @param numSamples The number of samples per pixel for multisampling.
+* @param format The format of the image (e.g., VK_FORMAT_R8G8B8A8_SRGB).
+* @param tiling The tiling arrangement of the image (e.g., VK_IMAGE_TILING_OPTIMAL).
+* @param usage The intended usage of the image (e.g., VK_IMAGE_USAGE_SAMPLED_BIT).
+* @param properties The memory properties required for the image (e.g., VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT).
+* @param image A reference to a VkImage handle where the created image will be stored.
+* @param imageMemory A reference to a VkDeviceMemory handle where the allocated memory will be stored.
+*
+* @throws std::runtime_error If the image creation or memory allocation fails.
+*/
 void maverik::vk::Utils::createImage(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 {
     VkImageCreateInfo imageInfo{};
@@ -122,6 +206,27 @@ void maverik::vk::Utils::createImage(VkDevice logicalDevice, VkPhysicalDevice ph
     vkBindImageMemory(logicalDevice, image, imageMemory, 0);
 }
 
+/**
+* @brief Transitions the layout of a Vulkan image.
+*
+* This function is used to transition a Vulkan image from one layout to another.
+* It sets up the necessary image memory barriers and pipeline stages to ensure
+* proper synchronization during the transition.
+*
+* @param logicalDevice The Vulkan logical device.
+* @param commandPool The command pool used to allocate the command buffer.
+* @param graphicsQueue The graphics queue used to submit the command buffer.
+* @param image The Vulkan image to transition.
+* @param format The format of the image, used to determine if it has a stencil component.
+* @param oldLayout The current layout of the image.
+* @param newLayout The desired layout of the image.
+* @param mipLevels The number of mipmap levels in the image.
+*
+* @throws std::invalid_argument If the layout transition is unsupported.
+*
+* @note This function assumes that the image is not being used concurrently
+*       by other operations during the transition.
+*/
 void maverik::vk::Utils::transitionImageLayout(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
 {
     VkCommandBuffer commandBuffer = Utils::beginSingleTimeCommands(logicalDevice, commandPool);
@@ -191,6 +296,22 @@ void maverik::vk::Utils::transitionImageLayout(VkDevice logicalDevice, VkCommand
 // private methods //
 /////////////////////
 
+/**
+* @brief Finds a supported Vulkan format from a list of candidates based on specified tiling and feature requirements.
+*
+* This function iterates through a list of candidate formats and checks if any of them
+* meet the specified requirements for image tiling and format features. If a suitable
+* format is found, it is returned. If no suitable format is found, an exception is thrown.
+*
+* @param physicalDevice The Vulkan physical device to query for format support.
+* @param candidates A list of candidate VkFormat values to check for support.
+* @param tiling The desired VkImageTiling (e.g., VK_IMAGE_TILING_LINEAR or VK_IMAGE_TILING_OPTIMAL).
+* @param features The required VkFormatFeatureFlags that the format must support.
+*
+* @return VkFormat The first format from the candidates list that meets the specified requirements.
+*
+* @throws std::runtime_error If no supported format is found in the candidates list.
+*/
 VkFormat maverik::vk::Utils::findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 {
     for (VkFormat format : candidates) {
@@ -207,11 +328,37 @@ VkFormat maverik::vk::Utils::findSupportedFormat(VkPhysicalDevice physicalDevice
     throw std::runtime_error("failed to find supported format!");
 }
 
+/**
+* @brief Checks if the given Vulkan format includes a stencil component.
+*
+* This function determines whether the specified Vulkan format contains
+* a stencil component by comparing it against known formats that include
+* stencil data.
+*
+* @param format The Vulkan format to check (VkFormat).
+* @return true if the format includes a stencil component, false otherwise.
+*/
 bool maverik::vk::Utils::hasStencilComponent(VkFormat format)
 {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
+/**
+* @brief Begins a single-time command buffer for Vulkan operations.
+*
+* This function allocates and begins recording a command buffer that is intended
+* for short-lived operations, such as resource transfers or one-off commands.
+* The command buffer is allocated from the specified command pool and is configured
+* with the `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT` flag, indicating that it
+* will be submitted only once before being reset or freed.
+*
+* @param logicalDevice The Vulkan logical device used to allocate the command buffer.
+* @param commandPool The command pool from which the command buffer will be allocated.
+* @return VkCommandBuffer The allocated and begun command buffer ready for recording commands.
+*
+* @note The caller is responsible for ending the command buffer recording and submitting
+*       it to a queue, as well as cleaning up resources after use.
+*/
 VkCommandBuffer maverik::vk::Utils::beginSingleTimeCommands(VkDevice logicalDevice, VkCommandPool commandPool)
 {
     VkCommandBufferAllocateInfo allocInfo{};
@@ -232,6 +379,18 @@ VkCommandBuffer maverik::vk::Utils::beginSingleTimeCommands(VkDevice logicalDevi
     return commandBuffer;
 }
 
+/**
+ * @brief Ends a single-time command buffer operation and cleans up resources.
+ *
+ * This function finalizes the execution of a single-time command buffer by
+ * submitting it to the specified graphics queue, waiting for the queue to
+ * become idle, and then freeing the command buffer resources.
+ *
+ * @param logicalDevice The Vulkan logical device used to free the command buffer.
+ * @param commandPool The command pool from which the command buffer was allocated.
+ * @param graphicsQueue The Vulkan queue to which the command buffer is submitted.
+ * @param commandBuffer The command buffer to be ended, submitted, and freed.
+ */
 void maverik::vk::Utils::endSingleTimeCommands(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer)
 {
     vkEndCommandBuffer(commandBuffer);
