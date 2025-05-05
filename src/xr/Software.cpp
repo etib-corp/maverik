@@ -7,7 +7,7 @@
 
 #include "xr/Software.hpp"
 
-maverik::xr::Software::Software(std::shared_ptr<PlatformData> platformData)
+maverik::xr::Software::Software(const std::shared_ptr<PlatformData> &platformData)
 {
     _platform = std::make_shared<AndroidPlatform>(platformData);
     _graphicalContext = nullptr;
@@ -36,7 +36,7 @@ void maverik::xr::Software::createInstance()
     createInfo.enabledExtensionNames = extensions.data();
     createInfo.enabledApiLayerCount = 0;
     createInfo.enabledApiLayerNames = nullptr;
-    strcpy(createInfo.applicationInfo.applicationName, "maverik");
+    std::strcpy(createInfo.applicationInfo.applicationName, "maverik");
     createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
     if (xrCreateInstance(&createInfo, &_XRinstance) != XR_SUCCESS) {
@@ -52,6 +52,32 @@ void maverik::xr::Software::createInstance()
         return;
     }
 
-    _renderingContext = std::make_shared<RenderingContext>(_XRinstance, _XRsystemID);
-    _graphicalContext->createInstance();
+    _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(_XRinstance, _XRsystemID);
+    _graphicalContext->init();
+
+    std::shared_ptr<VulkanContext> vulkanContext = _graphicalContext->getVulkanContext();
+    if (vulkanContext == nullptr) {
+        std::cerr << "Failed to get Vulkan context" << std::endl;
+        return;
+    }
+
+    XrGraphicsBindingVulkan2KHR graphicsBinding{};
+
+    graphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_2_KHR;
+    graphicsBinding.next = nullptr;
+    graphicsBinding.instance = _graphicalContext->getInstance();
+    graphicsBinding.device = vulkanContext->logicalDevice;
+    graphicsBinding.queueFamilyIndex = vulkanContext->graphicsQueueFamilyIndex;
+    graphicsBinding.queueIndex = 0;
+
+    XrSessionCreateInfo sessionInfo{};
+
+    sessionInfo.type = XR_TYPE_SESSION_CREATE_INFO;
+    sessionInfo.next;
+    sessionInfo.systemId = _XRsystemID;
+
+    if (xrCreateSession(_XRinstance, &sessionInfo, &_XRsession) != XR_SUCCESS) {
+        std::cerr << "Failed to create XR session" << std::endl;
+        return;
+    }
 }

@@ -12,9 +12,9 @@
 
 namespace maverik {
     namespace xr {
-        class RenderingContext : plublic maverik::ARenderingContext {
+        class RenderingContext : public maverik::ARenderingContext {
             public:
-                RenderingContext(XrInstance instance, XrSystemId systemID);
+                RenderingContext(XrInstance XRinstance, VkInstance instance,  XrSystemId systemID);
                 ~RenderingContext() override;
 
                 void init() override;
@@ -23,6 +23,7 @@ namespace maverik {
             private:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
+                VkInstance _vulkanInstance = VK_NULL_HANDLE;
         };
     }
 }

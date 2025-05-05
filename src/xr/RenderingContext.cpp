@@ -7,9 +7,10 @@
 
 #include "xr/RenderingContext.hpp"
 
-maverik::xr::RenderingContext::RenderingContext(XrInstance instance, XrSystemId systemID)
-    : _XRinstance(instance), _XRsystemID(systemID)
+maverik::xr::RenderingContext::RenderingContext(XrInstance XRinstance, VkInstance instance, XrSystemId systemID)
+    : _XRinstance(XRinstance), _vulkanInstance(instance), _XRsystemID(systemID)
 {
+    _vulkanContext = std::make_shared<VulkanContext>();
 }
 
 maverik::xr::RenderingContext::~RenderingContext()
@@ -34,7 +35,7 @@ void maverik::xr::RenderingContext::init()
     graphicsDeviceGetInfo.systemId = _XRsystemID;
     graphicsDeviceGetInfo.vulkanInstance = _vulkanInstance;
 
-    if (xrGetVulkanGraphicsDevice2KHR(_XRinstance, &graphicsDeviceGetInfo, &_vulkanPhysicalDevice) != XR_SUCCESS) {
+    if (xrGetVulkanGraphicsDevice2KHR(_XRinstance, &graphicsDeviceGetInfo, &_physicalDevice) != XR_SUCCESS) {
         return;
     }
 
@@ -50,9 +51,9 @@ void maverik::xr::RenderingContext::init()
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
     uint32_t queueFamilyIndex = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(_vulkanPhysicalDevice, &queueFamilyIndex, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyIndex, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyIndex);
-    vkGetPhysicalDeviceQueueFamilyProperties(_vulkanPhysicalDevice, &queueFamilyIndex, &queueFamilyProperties[0]);
+    vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyIndex, &queueFamilyProperties[0]);
     for (uint32_t i = 0; i < queueFamilyIndex; ++i) {
         if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             queueCreateInfo.queueFamilyIndex = i;
@@ -77,12 +78,12 @@ void maverik::xr::RenderingContext::init()
     vulkanDeviceCreateInfo.systemId = _XRsystemID;
     vulkanDeviceCreateInfo.createFlags = 0;
     vulkanDeviceCreateInfo.pfnGetInstanceProcAddr = vkGetInstanceProcAddr;
-    vulkanDeviceCreateInfo.vulkanPhysicalDevice = _vulkanPhysicalDevice;
+    vulkanDeviceCreateInfo.vulkanPhysicalDevice = _physicalDevice;
     vulkanDeviceCreateInfo.vulkanCreateInfo = &deviceCreateInfo;
     vulkanDeviceCreateInfo.vulkanAllocator = nullptr;
 
     VkResult result = VK_SUCCESS;
-    if (xrCreateVulkanDeviceKHR(_XRinstance, &vulkanDeviceCreateInfo, &_vulkanDevice, &result) != XR_SUCCESS) {
+    if (xrCreateVulkanDeviceKHR(_XRinstance, &vulkanDeviceCreateInfo, &_logicalDevice, &result) != XR_SUCCESS) {
         std::cerr << "Failed to create Vulkan device" << std::endl;
         return;
     }
@@ -90,7 +91,7 @@ void maverik::xr::RenderingContext::init()
         std::cerr << "Failed to create Vulkan device: " << result << std::endl;
         return;
     }
-    if (vkGetDeviceQueue(_vulkanDevice, queueCreateInfo.queueFamilyIndex, 0, &_vulkanQueue) != VK_SUCCESS) {
+    if (vkGetDeviceQueue(_logicalDevice, queueCreateInfo.queueFamilyIndex, 0, &_graphicsQueue) != VK_SUCCESS) {
         std::cerr << "Failed to get Vulkan queue" << std::endl;
         return;
     }
@@ -99,8 +100,15 @@ void maverik::xr::RenderingContext::init()
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     commandPoolCreateInfo.queueFamilyIndex = queueCreateInfo.queueFamilyIndex;
     commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    if (vkCreateCommandPool(_vulkanDevice, &commandPoolCreateInfo, nullptr, &_commandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(_logicalDevice, &commandPoolCreateInfo, nullptr, &_commandPool) != VK_SUCCESS) {
         std::cerr << "Failed to create Vulkan command pool" << std::endl;
         return;
     }
+
+    _vulkanContext->logicalDevice = _logicalDevice;
+    _vulkanContext->physicalDevice = _physicalDevice;
+    _vulkanContext->graphicsQueue = _graphicsQueue;
+    _vulkanContext->commandPool = _commandPool;
+    _vulkanContext->graphicsQueueFamilyIndex = queueCreateInfo.queueFamilyIndex;
+    _vulkanContext->renderPass = VK_NULL_HANDLE;
 }

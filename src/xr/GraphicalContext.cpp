@@ -10,7 +10,7 @@
 maverik::xr::GraphicalContext::GraphicalContext(XrInstance instance, XrSystemId systemID)
     : _XRinstance(instance), _XRsystemID(systemID)
 {
-    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_XRinstance, _XRsystemID);
+    _renderingContext = nullptr;
 }
 
 maverik::xr::GraphicalContext::~GraphicalContext()
@@ -19,6 +19,7 @@ maverik::xr::GraphicalContext::~GraphicalContext()
 
 void maverik::xr::GraphicalContext::init()
 {
+    createInstance();
 }
 
 void maverik::xr::GraphicalContext::run()
@@ -55,14 +56,14 @@ void maverik::xr::GraphicalContext::createInstance()
     std::vector<const char *> layers{};
     std::vector<const char *> extensions{};
 
-    XrApplicationInfo appInfo{};
-    appInfo.type = XR_TYPE_APPLICATION_INFO;
-    appInfo.next = nullptr;
-    appInfo.applicationName = "maverik";
-    appInfo.applicationVersion = 1;
-    appInfo.engineName = "maverik";
-    appInfo.engineVersion = 1;
-    appInfo.apiVersion = XR_CURRENT_API_VERSION;
+    VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pApplicationName= "test",
+        .applicationVersion = 0u,
+        .pEngineName = "maverik",
+        .engineVersion = 0u,
+        .apiVersion = VK_API_VERSION_1_3,
+    };
 
     VkInstanceCreateInfo vkCreateInfo{};
     vkCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -83,7 +84,7 @@ void maverik::xr::GraphicalContext::createInstance()
     vkInstanceCreateInfo.vulkanAllocator = nullptr;
 
     VkResult result = VK_SUCCESS;
-    if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &result) != XR_SUCCESS) {
+    if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &_instance,&result) != XR_SUCCESS) {
         std::cerr << "Failed to create Vulkan instance" << std::endl;
         return;
     }
@@ -91,5 +92,7 @@ void maverik::xr::GraphicalContext::createInstance()
         std::cerr << "Failed to create Vulkan instance: " << result << std::endl;
         return;
     }
+
+    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_XRinstance, _instance, _XRsystemID);
     _renderingContext->init();
 }
