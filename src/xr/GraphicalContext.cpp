@@ -17,6 +17,7 @@ maverik::xr::GraphicalContext::~GraphicalContext()
 {
 }
 
+
 void maverik::xr::GraphicalContext::init()
 {
     createInstance();
@@ -30,6 +31,7 @@ std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
 {
     return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
 }
+
 
 void maverik::xr::GraphicalContext::createInstance()
 {

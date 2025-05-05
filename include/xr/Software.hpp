@@ -22,6 +22,21 @@ namespace maverik {
                 Software(const std::shared_ptr<PlatformData> &platformData);
                 ~Software();
 
+                /**
+                 * @brief Creates an OpenXR instance, initializes the graphical context, and sets up an XR session.
+                 *
+                 * This function performs the following steps:
+                 * 1. Checks if the XR instance is already created. If so, it returns immediately.
+                 * 2. Prepares a list of required extensions, including platform-specific and graphical context extensions.
+                 * 3. Fills out the XrInstanceCreateInfo structure and creates the XR instance.
+                 * 4. Retrieves the XR system ID for the head-mounted display form factor.
+                 * 5. Initializes the graphical context and retrieves the Vulkan context.
+                 * 6. Sets up the Vulkan graphics binding for OpenXR.
+                 * 7. Creates an XR session using the initialized XR instance and system ID.
+                 *
+                 * @note If any step fails, an error message is logged to std::cerr, and the function returns without completing the remaining steps.
+                 *
+                 */
                 void createInstance();
 
             protected:
