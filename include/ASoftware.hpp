@@ -8,6 +8,7 @@
 #pragma once
 
 #include "vulkan.hpp"
+#include <iostream>
 #include "AGraphicalContext.hpp"
 
 namespace maverik {
