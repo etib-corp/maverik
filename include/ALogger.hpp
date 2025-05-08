@@ -34,7 +34,7 @@
         } else if (level == maverik::ALogger::FATAL) { \
             logger->fatal(message, __PRETTY_FUNCTION__); \
         } else { \
-            std::cerr << "Unknown log level: " << level << " but got this message :\"" << message << "\"" std::endl; \
+            std::cerr << "Unknown log level: " << level << " but got this message :\"" << message << "\"" << std::endl; \
         } \
     } while (0)
 
