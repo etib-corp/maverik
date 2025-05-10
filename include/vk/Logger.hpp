@@ -8,6 +8,22 @@
 #pragma once
 
 #include "ALogger.hpp"
+#include <cstdio>
+#include <format>
+#include <vector>
+
+#if defined(__linux__) || defined(__APPLE__)
+
+#ifndef BINARY_NAME
+#define BINARY_NAME "maverik"
+#endif
+
+#include <cxxabi.h>
+#include <execinfo.h>
+#elif defined(_WIN32)
+#include <windows.h>
+#include <dbghelp.h>
+#endif
 
 /**
  * @namespace maverik
@@ -47,5 +63,32 @@ namespace maverik {
             private:
                 std::ostream &_stream;      ///< A reference to the output stream where log messages will be written
         };
-    };
+
+        class Backtrace {
+            public:
+                #if defined(__linux__) || defined(__APPLE__)
+                static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
+                    void **array = (void **)malloc(sizeof(void *) * size);
+                    size_t count = backtrace(array, size);
+                    char **strings = backtrace_symbols(array, count);
+                    std::vector<std::string> result;
+                    for (size_t i = skip; i < count; ++i) {
+                        result.push_back(strings[i]);
+                    }
+                    for (int i = 0; i < 3; i++) {
+                        result.pop_back();
+                    }
+
+                    free(strings);
+                    free(array);
+                    return result;
+                }
+            #elif defined(_WIN32)
+                static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
+                    // Windows-specific implementation
+                    return {};
+                }
+            #endif
+        };
+    }
 }

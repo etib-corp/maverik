@@ -15,6 +15,9 @@
 #include <string>
 #include <sstream>
 
+#define PROPER_FILE std::string(__FILE__).substr(std::string(__FILE__).find_last_of("/\\") + 1)
+#define LOCATION std::string("In ") + std::string(__PRETTY_FUNCTION__) + std::string(" at ") + PROPER_FILE + ":" + std::to_string(__LINE__)
+
 /**
  * @brief The `LOG` macro is a utility for logging messages at various severity levels (`ERROR`, `WARNING`, `INFO`, `DEBUG`, `FATAL`) using a `maverik::ALogger` instance. If an unknown log level is provided, it outputs an error message to `std::cerr` along with the unrecognized level and message.
  * @param level The log level (e.g., `maverik::ALogger::ERROR`, `maverik::ALogger::WARNING`, etc.).
@@ -24,15 +27,15 @@
 #define LOG(level, message) \
     do { \
         if (level == maverik::ALogger::ERROR) { \
-            logger->error(message, __PRETTY_FUNCTION__); \
+            logger->error(message, LOCATION); \
         } else if (level == maverik::ALogger::WARNING) { \
-            logger->warning(message, __PRETTY_FUNCTION__); \
+            logger->warning(message, LOCATION); \
         } else if (level == maverik::ALogger::INFO) { \
-            logger->info(message, __PRETTY_FUNCTION__); \
+            logger->info(message, LOCATION); \
         } else if (level == maverik::ALogger::DEBUG) { \
-            logger->debug(message, __PRETTY_FUNCTION__); \
+            logger->debug(message, LOCATION); \
         } else if (level == maverik::ALogger::FATAL) { \
-            logger->fatal(message, __PRETTY_FUNCTION__); \
+            logger->fatal(message, LOCATION); \
         } else { \
             std::cerr << "Unknown log level: " << level << " but got this message :\"" << message << "\"" << std::endl; \
         } \

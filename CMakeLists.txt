@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.29)
 project(maverik)
 
 option(ENABLE_XR "Enable XR" OFF)
@@ -47,9 +47,13 @@ else()
     set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+    include_directories(include/vk)
+
     file(GLOB_RECURSE SOURCES_VK "src/vk/*.cpp")
 
-    add_executable(maverik ${SOURCES_COMMON} ${SOURCES_VK})
+    add_compile_options(-g1)
+
+    add_executable(maverik ${SOURCES_COMMON} ${SOURCES_VK} "main.cpp")
 endif()
 
 target_include_directories(maverik PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
