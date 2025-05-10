@@ -86,7 +86,7 @@ namespace maverik {
                 };
 
                 // Constructors
-                RenderingContext(const WindowProperties &windowProperties, VkInstance instance);
+                RenderingContext(const WindowProperties &windowProperties, VkInstance instance, VkRenderPass renderPass, VkImageView textureImageView, VkSampler textureSampler);
                 ~RenderingContext();
 
             protected:

@@ -22,20 +22,20 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallback(VkDebugUtilsMessageSe
 // Public methods //
 ////////////////////
 
-maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowProperties, VkInstance instance)
+maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowProperties, VkInstance instance, VkRenderPass renderPass, VkImageView textureImageView, VkSampler textureSampler)
 {
     this->initWindow(windowProperties.width, windowProperties.height, windowProperties.title);
     this->createSurface(instance);
     this->pickPhysicalDevice(instance);
     this->createLogicalDevice();
     this->createDescriptorSetLayout();
-    this->createGraphicsPipeline(VK_NULL_HANDLE); // TODO: add render pass as parameter
+    this->createGraphicsPipeline(renderPass);
     this->createCommandPool();
     this->createVertexBuffer();
     this->createIndexBuffer();
     this->createUniformBuffers();
     this->createDescriptorPool();
-    this->createDescriptorSets(VK_NULL_HANDLE, VK_NULL_HANDLE); // TODO: add texture image view and sampler as parameters
+    this->createDescriptorSets(textureImageView, textureSampler);
     this->createCommandBuffers();
     this->createSyncObjects();
 }
