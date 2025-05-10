@@ -11,6 +11,19 @@
 // Static methods //
 ////////////////////
 
+/**
+ * @brief Default debug callback function for Vulkan validation layers.
+ *
+ * This function is called whenever a validation layer generates a debug message.
+ * It outputs the message to the standard error stream.
+ *
+ * @param messageSeverity Specifies the severity of the message (e.g., verbose, info, warning, or error).
+ * @param messageType Specifies the type of the message (e.g., general, validation, or performance).
+ * @param pCallbackData Pointer to a structure containing details about the debug message.
+ * @param pUserData Pointer to user-defined data passed during the creation of the debug messenger.
+ *
+ * @return Always returns VK_FALSE, indicating that the Vulkan call that triggered the callback should not be aborted.
+ */
 static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 {
     std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
@@ -22,6 +35,20 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallback(VkDebugUtilsMessageSe
 // Public methods //
 ////////////////////
 
+/**
+ * @brief Constructs a RenderingContext object and initializes all Vulkan-related resources.
+ *
+ * This constructor sets up the Vulkan rendering context by initializing the window,
+ * creating the Vulkan surface, selecting a physical device, creating a logical device,
+ * and setting up various Vulkan resources such as descriptor sets, pipelines, buffers,
+ * and synchronization objects.
+ *
+ * @param windowProperties The properties of the window, including width, height, and title.
+ * @param instance The Vulkan instance to be used for creating the rendering context.
+ * @param renderPass The Vulkan render pass to be used in the graphics pipeline.
+ * @param textureImageView The Vulkan image view for the texture to be used in the descriptor sets.
+ * @param textureSampler The Vulkan sampler for the texture to be used in the descriptor sets.
+ */
 maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowProperties, VkInstance instance, VkRenderPass renderPass, VkImageView textureImageView, VkSampler textureSampler)
 {
     this->initWindow(windowProperties.width, windowProperties.height, windowProperties.title);
@@ -40,10 +67,30 @@ maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowPr
     this->createSyncObjects();
 }
 
+/**
+ * @brief Destructor for the RenderingContext class.
+ *
+ * Cleans up resources associated with the RenderingContext instance.
+ * This destructor is invoked when an object of the RenderingContext
+ * class goes out of scope or is explicitly deleted.
+ */
 maverik::vk::RenderingContext::~RenderingContext()
 {
 }
 
+/**
+ * @brief Initializes a GLFW window for the rendering context.
+ *
+ * This function sets up a GLFW window with the specified dimensions and title.
+ * It ensures that GLFW is properly initialized and configures the window to
+ * use Vulkan as the rendering API. If any step fails, an exception is thrown.
+ *
+ * @param width The width of the window in pixels.
+ * @param height The height of the window in pixels.
+ * @param title The title of the window as a string.
+ *
+ * @throws std::runtime_error If GLFW initialization fails or the window cannot be created.
+ */
 void maverik::vk::RenderingContext::initWindow(unsigned int width, unsigned int height, const std::string &title)
 {
     if (!glfwInit()) {
@@ -63,6 +110,18 @@ void maverik::vk::RenderingContext::initWindow(unsigned int width, unsigned int 
 // Protected methods //
 ///////////////////////
 
+/**
+ * @brief Creates a Vulkan surface for rendering, specific to the platform.
+ *
+ * This function initializes a Vulkan surface (_surface) for the given Vulkan instance.
+ * It handles platform-specific surface creation logic. On Windows, it uses the 
+ * `vkCreateWin32SurfaceKHR` function, while on other platforms, it uses GLFW's 
+ * `glfwCreateWindowSurface` function.
+ *
+ * @param instance The Vulkan instance used to create the surface. Must not be VK_NULL_HANDLE.
+ *
+ * @throws std::runtime_error If the Vulkan instance is null or if surface creation fails.
+ */
 void maverik::vk::RenderingContext::createSurface(VkInstance instance)
 {
 #ifdef _WIN32
@@ -85,6 +144,18 @@ void maverik::vk::RenderingContext::createSurface(VkInstance instance)
 #endif
 }
 
+/**
+ * @brief Selects and initializes a suitable physical device (GPU) for Vulkan operations.
+ *
+ * This function enumerates all available physical devices and selects the first one
+ * that meets the application's requirements. It ensures that the selected device
+ * supports the required Vulkan extensions and is compatible with the provided surface.
+ *
+ * @param instance The Vulkan instance used to enumerate physical devices.
+ *
+ * @throws std::runtime_error If no GPUs with Vulkan support are found or if no suitable
+ *         GPU is available that meets the application's requirements.
+ */
 void maverik::vk::RenderingContext::pickPhysicalDevice(VkInstance instance)
 {
     uint32_t deviceCount = 0;
@@ -110,6 +181,23 @@ void maverik::vk::RenderingContext::pickPhysicalDevice(VkInstance instance)
     }
 }
 
+/**
+ * @brief Creates a Vulkan logical device and retrieves the graphics and present queues.
+ *
+ * This function sets up a logical device for the Vulkan application by specifying
+ * the required queue families, device features, and extensions. It also retrieves
+ * the graphics and present queues for later use in rendering and presentation.
+ *
+ * @throws std::runtime_error if the logical device creation fails.
+ *
+ * The function performs the following steps:
+ * - Finds the queue families required for graphics and presentation.
+ * - Configures the queue creation information for the unique queue families.
+ * - Specifies the required device features, such as anisotropic filtering and sample rate shading.
+ * - Configures the logical device creation information, including extensions and validation layers.
+ * - Creates the logical device using `vkCreateDevice`.
+ * - Retrieves the graphics and present queues using `vkGetDeviceQueue`.
+ */
 void maverik::vk::RenderingContext::createLogicalDevice()
 {
     Utils::QueueFamilyIndices indices = Utils::findQueueFamilies(_physicalDevice, _surface);
@@ -157,6 +245,32 @@ void maverik::vk::RenderingContext::createLogicalDevice()
     vkGetDeviceQueue(_logicalDevice, indices.presentFamily.value(), 0, &_presentQueue);
 }
 
+/**
+ * @brief Creates a Vulkan graphics pipeline for rendering.
+ *
+ * This function sets up and creates a Vulkan graphics pipeline, which includes
+ * configuring shader stages, vertex input, input assembly, viewport, rasterization,
+ * multisampling, color blending, depth and stencil testing, and dynamic states.
+ *
+ * @param renderPass The Vulkan render pass object that the pipeline will be compatible with.
+ *
+ * @throws std::runtime_error If the pipeline layout or graphics pipeline creation fails.
+ *
+ * The function performs the following steps:
+ * - Reads and compiles vertex and fragment shader modules.
+ * - Configures shader stages using the compiled shader modules.
+ * - Sets up vertex input state, including binding and attribute descriptions.
+ * - Configures input assembly state for primitive topology.
+ * - Sets up viewport and scissor states.
+ * - Configures rasterization state, including culling and polygon mode.
+ * - Sets up multisampling state for anti-aliasing.
+ * - Configures color blending state for framebuffer output.
+ * - Sets up dynamic states for viewport and scissor.
+ * - Creates a pipeline layout using descriptor set layouts.
+ * - Configures depth and stencil testing state.
+ * - Creates the graphics pipeline using all the configured states.
+ * - Cleans up shader modules after pipeline creation.
+ */
 void maverik::vk::RenderingContext::createGraphicsPipeline(VkRenderPass renderPass)
 {
     auto vertShaderCode = Utils::readFile("shaders/vert.spv");
@@ -287,6 +401,25 @@ void maverik::vk::RenderingContext::createGraphicsPipeline(VkRenderPass renderPa
     vkDestroyShaderModule(_logicalDevice, vertShaderModule, nullptr);
 }
 
+/**
+ * @brief Creates a Vulkan command pool for managing command buffers.
+ *
+ * This function initializes a command pool that is used to allocate and manage
+ * command buffers for recording Vulkan commands. The command pool is created
+ * with the reset command buffer flag, allowing individual command buffers to be
+ * reset independently.
+ *
+ * @throws std::runtime_error If the command pool creation fails.
+ *
+ * @details
+ * - The function retrieves the queue family indices for the physical device and
+ *   surface using the `Utils::findQueueFamilies` utility function.
+ * - The command pool is associated with the graphics queue family index.
+ * - The Vulkan function `vkCreateCommandPool` is used to create the command pool.
+ *
+ * @note Ensure that the `_physicalDevice`, `_surface`, and `_logicalDevice` are
+ * properly initialized before calling this function.
+ */
 void maverik::vk::RenderingContext::createCommandPool()
 {
     Utils::QueueFamilyIndices queueFamilyIndices = Utils::findQueueFamilies(_physicalDevice, _surface);
@@ -301,6 +434,26 @@ void maverik::vk::RenderingContext::createCommandPool()
     }
 }
 
+/**
+ * @brief Creates a vertex buffer and uploads vertex data to the GPU.
+ *
+ * This function creates a staging buffer in host-visible memory, copies the vertex data
+ * to it, and then transfers the data to a device-local vertex buffer for optimal GPU access.
+ * The staging buffer is destroyed after the data transfer is complete.
+ *
+ * @details
+ * - A staging buffer is created with `VK_BUFFER_USAGE_TRANSFER_SRC_BIT` and 
+ *   `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` properties.
+ * - The vertex data is mapped to the staging buffer memory and copied using `memcpy`.
+ * - A device-local vertex buffer is created with `VK_BUFFER_USAGE_TRANSFER_DST_BIT` and 
+ *   `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT` properties.
+ * - The data is transferred from the staging buffer to the vertex buffer using a command buffer.
+ * - The staging buffer and its associated memory are cleaned up after the transfer.
+ *
+ * @note This function assumes that `_vertices` contains the vertex data to be uploaded.
+ *
+ * @throws Vulkan-related errors if buffer creation, memory mapping, or data transfer fails.
+ */
 void maverik::vk::RenderingContext::createVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertices.size();
@@ -321,6 +474,25 @@ void maverik::vk::RenderingContext::createVertexBuffer()
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
 
+/**
+ * @brief Creates an index buffer for the Vulkan rendering context.
+ *
+ * This function initializes the index buffer by creating a staging buffer,
+ * copying the index data to it, and then transferring the data to a device-local
+ * buffer for optimal GPU access. The staging buffer is destroyed after the data
+ * transfer is complete.
+ *
+ * @details
+ * - A staging buffer is created with host-visible and host-coherent memory properties.
+ * - The index data is mapped to the staging buffer and copied using `memcpy`.
+ * - A device-local buffer is created with usage flags for transfer destination and index buffer.
+ * - The data is transferred from the staging buffer to the device-local buffer using a command buffer.
+ * - The staging buffer and its associated memory are cleaned up after the transfer.
+ *
+ * @note This function assumes that `_indices` contains the index data to be used.
+ *
+ * @throws Vulkan-related errors if buffer creation, memory mapping, or data transfer fails.
+ */
 void maverik::vk::RenderingContext::createIndexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_indices[0]) * _indices.size();
@@ -342,6 +514,24 @@ void maverik::vk::RenderingContext::createIndexBuffer()
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
 
+/**
+ * @brief Creates uniform buffers for the rendering context.
+ *
+ * This function initializes and allocates uniform buffers for each frame in flight.
+ * It creates a buffer and allocates memory for each frame, ensuring that the buffers
+ * are host-visible and host-coherent. The memory for each buffer is also mapped for
+ * easy access during rendering operations.
+ *
+ * @details
+ * - The size of each uniform buffer is determined by the size of the `UniformBufferObject`.
+ * - The number of uniform buffers created corresponds to the `MAX_FRAMES_IN_FLIGHT` constant.
+ * - The buffers are created with the `VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT` usage flag.
+ * - The memory properties used are `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and 
+ *   `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` to allow CPU access and ensure memory coherency.
+ * - The memory for each buffer is mapped immediately after allocation for future use.
+ *
+ * @throws std::runtime_error If buffer creation or memory mapping fails.
+ */
 void maverik::vk::RenderingContext::createUniformBuffers()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
@@ -357,6 +547,18 @@ void maverik::vk::RenderingContext::createUniformBuffers()
     }
 }
 
+/**
+ * @brief Sets up the Vulkan debug messenger for the rendering context.
+ *
+ * This function initializes a Vulkan debug messenger if validation layers
+ * are enabled. The debug messenger is used to capture and handle debug
+ * messages from the Vulkan API, which can help in identifying issues
+ * during development.
+ *
+ * @param instance The Vulkan instance to associate the debug messenger with.
+ *
+ * @throws std::runtime_error If the debug messenger setup fails.
+ */
 void maverik::vk::RenderingContext::setupDebugMessenger(VkInstance instance)
 {
     if (!enableValidationLayers)
@@ -370,6 +572,19 @@ void maverik::vk::RenderingContext::setupDebugMessenger(VkInstance instance)
     }
 }
 
+/**
+ * @brief Creates a Vulkan descriptor pool for managing descriptor sets.
+ *
+ * This function initializes a descriptor pool with specific pool sizes for 
+ * uniform buffers and combined image samplers. The number of descriptors 
+ * allocated for each type is determined by the constant MAX_FRAMES_IN_FLIGHT.
+ *
+ * @throws std::runtime_error If the Vulkan descriptor pool creation fails.
+ *
+ * The descriptor pool is used to allocate descriptor sets, which are 
+ * essential for binding resources (e.g., buffers and images) to shaders 
+ * during rendering.
+ */
 void maverik::vk::RenderingContext::createDescriptorPool()
 {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
@@ -389,6 +604,20 @@ void maverik::vk::RenderingContext::createDescriptorPool()
     }
 }
 
+/**
+ * @brief Creates the descriptor set layout for the Vulkan rendering context.
+ *
+ * This function defines and creates a descriptor set layout that specifies
+ * the bindings for uniform buffers and combined image samplers. The layout
+ * is used to interface between shaders and resources such as uniform buffers
+ * and textures.
+ *
+ * The descriptor set layout includes:
+ * - A uniform buffer binding at binding index 0, accessible in the vertex shader stage.
+ * - A combined image sampler binding at binding index 1, accessible in the fragment shader stage.
+ *
+ * @throws std::runtime_error If the Vulkan API call to create the descriptor set layout fails.
+ */
 void maverik::vk::RenderingContext::createDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
@@ -416,6 +645,23 @@ void maverik::vk::RenderingContext::createDescriptorSetLayout()
     }
 }
 
+/**
+ * @brief Creates and allocates descriptor sets for the rendering context.
+ *
+ * This function sets up descriptor sets for each frame in flight, binding
+ * uniform buffers and texture samplers to the appropriate descriptor bindings.
+ *
+ * @param textureImageView The Vulkan image view representing the texture to be sampled.
+ * @param textureSampler The Vulkan sampler used for sampling the texture.
+ *
+ * @throws std::runtime_error If descriptor set allocation fails.
+ *
+ * The function performs the following steps:
+ * 1. Allocates descriptor sets from the descriptor pool for the maximum number of frames in flight.
+ * 2. Configures descriptor buffer info for uniform buffers.
+ * 3. Configures descriptor image info for the texture image view and sampler.
+ * 4. Updates the descriptor sets with the uniform buffer and texture sampler bindings.
+ */
 void maverik::vk::RenderingContext::createDescriptorSets(VkImageView textureImageView, VkSampler textureSampler)
 {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
@@ -462,6 +708,16 @@ void maverik::vk::RenderingContext::createDescriptorSets(VkImageView textureImag
     }
 }
 
+/**
+ * @brief Allocates and initializes Vulkan command buffers for rendering operations.
+ *
+ * This function resizes the `_commandBuffers` vector to accommodate the maximum
+ * number of frames in flight (`MAX_FRAMES_IN_FLIGHT`) and allocates primary-level
+ * command buffers from the Vulkan command pool (`_commandPool`). The allocated
+ * command buffers are stored in the `_commandBuffers` vector.
+ *
+ * @throws std::runtime_error If the Vulkan command buffer allocation fails.
+ */
 void maverik::vk::RenderingContext::createCommandBuffers()
 {
     _commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -477,6 +733,22 @@ void maverik::vk::RenderingContext::createCommandBuffers()
     }
 }
 
+/**
+ * @brief Creates synchronization objects required for rendering operations.
+ *
+ * This function initializes semaphores and fences used to synchronize the 
+ * rendering process. It creates the following synchronization objects:
+ * - Image available semaphores: Signal when an image is available for rendering.
+ * - Render finished semaphores: Signal when rendering is complete.
+ * - In-flight fences: Ensure that a frame is not rendered until the previous 
+ *   frame has finished.
+ *
+ * Each synchronization object is created for the maximum number of frames 
+ * that can be in flight simultaneously, defined by `MAX_FRAMES_IN_FLIGHT`.
+ *
+ * @throws std::runtime_error If any of the synchronization objects fail to 
+ *         be created.
+ */
 void maverik::vk::RenderingContext::createSyncObjects()
 {
     _imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -505,6 +777,18 @@ void maverik::vk::RenderingContext::createSyncObjects()
 // Private methods //
 /////////////////////
 
+/**
+ * @brief Determines the maximum usable sample count for multisampling.
+ *
+ * This function queries the physical device properties to determine the 
+ * maximum sample count that can be used for both color and depth 
+ * framebuffer attachments. It checks the supported sample counts in 
+ * descending order of quality (from 64x to 1x) and returns the highest 
+ * supported sample count.
+ *
+ * @return VkSampleCountFlagBits The maximum usable sample count supported 
+ *         by the physical device.
+ */
 VkSampleCountFlagBits maverik::vk::RenderingContext::getMaxUsableSampleCount()
 {
     VkPhysicalDeviceProperties physicalDeviceProperties;

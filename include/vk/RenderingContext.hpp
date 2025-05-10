@@ -12,15 +12,39 @@
 
     #include "vk/Utils.hpp"
 
+    /*
+     * @brief Maximum number of frames in flight.
+     *
+     * This constant defines the maximum number of frames that can be in flight
+     * at any given time. It is used to manage synchronization and resource
+     * allocation for rendering operations in Vulkan.
+     *
+    */
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
+    /*
+     * @brief Maximum number of frames in flight.
+     *
+     * This constant defines the maximum number of frames that can be in flight
+     * at any given time. It is used to manage synchronization and resource
+     * allocation for rendering operations in Vulkan.
+     *
+    */
     const std::vector<const char*> deviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        "VK_KHR_portability_subset"
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,    // Swap chain extension
+        "VK_KHR_portability_subset"         // Portability subset extension
     };
 
+    /*
+     * @brief Validation layers for Vulkan debugging.
+     *
+     * This constant defines the validation layers used for debugging Vulkan
+     * applications. These layers provide additional checks and validation
+     * during development to help identify issues and improve code quality.
+     *
+    */
     const std::vector<const char*> validationLayers = {
-        "VK_LAYER_KHRONOS_validation"
+        "VK_LAYER_KHRONOS_validation"   // Khronos validation layer
     };
 
     #ifdef NDEBUG
@@ -33,23 +57,59 @@ namespace maverik {
     namespace vk {
         class RenderingContext : public ARenderingContext {
             public:
+                // Structs
+
+                /**
+                 * @brief Window properties structure.
+                 *
+                 * This structure holds the properties of the window, including its width,
+                 * height, and title. It is used to initialize the window and set its
+                 * properties during the creation of the rendering context.
+                 *
+                 */
                 struct WindowProperties {
-                    unsigned int width;
-                    unsigned int height;
-                    std::string title;
+                    unsigned int width;     // Width of the window
+                    unsigned int height;    // Height of the window
+                    std::string title;      // Title of the window
                 };
 
+                /**
+                 * @brief Uniform buffer object structure.
+                 *
+                 * This structure represents the data that will be passed to the vertex
+                 * shader as a uniform buffer. It contains the model, view, and projection
+                 * matrices used for rendering.
+                 *
+                 */
                 struct UniformBufferObject {
-                    glm::mat4 model;
-                    glm::mat4 view;
-                    glm::mat4 proj;
+                    glm::mat4 model;    // Model matrix
+                    glm::mat4 view;     // View matrix
+                    glm::mat4 proj;     // Projection matrix
                 };
 
+                /**
+                 * @brief Vertex structure.
+                 *
+                 * This structure represents a vertex in the 3D space. It contains the
+                 * position, color, and texture coordinates of the vertex. It is used to
+                 * define the vertex data for rendering.
+                 *
+                 */
                 struct Vertex {
-                    glm::vec3 pos;
-                    glm::vec3 color;
-                    glm::vec2 texCoord;
+                    glm::vec3 pos;          // Position of the vertex
+                    glm::vec3 color;        // Color of the vertex
+                    glm::vec2 texCoord;     // Texture coordinates of the vertex
 
+                    /*
+                     * @brief Get the binding description for the vertex.
+                     *
+                     * This function returns the binding description for the vertex,
+                     * which specifies how the vertex data is laid out in memory.
+                     *
+                     * @return VkVertexInputBindingDescription The binding description
+                     *         for the vertex.
+                     *
+                    */
                     static VkVertexInputBindingDescription getBindingDescription() {
                         VkVertexInputBindingDescription bindingDescription{};
                         bindingDescription.binding = 0;
@@ -59,6 +119,17 @@ namespace maverik {
                         return bindingDescription;
                     }
 
+                    /*
+                     * @brief Get the attribute descriptions for the vertex.
+                     *
+                     * This function returns an array of attribute descriptions for the
+                     * vertex, which specify the format and offset of each attribute in
+                     * the vertex data.
+                     *
+                     * @return std::array<VkVertexInputAttributeDescription, 3> The
+                     *         attribute descriptions for the vertex.
+                     *
+                    */
                     static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
                         std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
@@ -80,6 +151,16 @@ namespace maverik {
                         return attributeDescriptions;
                     }
 
+                    /*
+                     * @brief Equality operator for the Vertex structure.
+                     *
+                     * This operator compares two Vertex objects for equality based on
+                     * their position, color, and texture coordinates.
+                     *
+                     * @param other The other Vertex object to compare with.
+                     * @return true if the two Vertex objects are equal, false otherwise.
+                     *
+                    */
                     bool operator==(const Vertex& other) const {
                         return pos == other.pos && color == other.color && texCoord == other.texCoord;
                     }
@@ -87,53 +168,55 @@ namespace maverik {
 
                 // Constructors
                 RenderingContext(const WindowProperties &windowProperties, VkInstance instance, VkRenderPass renderPass, VkImageView textureImageView, VkSampler textureSampler);
+
+                // Destructor
                 ~RenderingContext();
 
             protected:
-                GLFWwindow *_window;
-                VkSurfaceKHR _surface;
-                VkQueue _presentQueue;
+                GLFWwindow *_window;                    // Pointer to the GLFW window
+                VkSurfaceKHR _surface;                  // Vulkan surface for rendering
+                VkQueue _presentQueue;                  // Vulkan queue for presentation
 
-                VkPipelineLayout _pipelineLayout;
-                VkPipeline _graphicsPipeline;
+                VkPipelineLayout _pipelineLayout;       // Vulkan pipeline layout
+                VkPipeline _graphicsPipeline;           // Vulkan graphics pipeline
 
                 void createGraphicsPipeline(VkRenderPass renderPass);
 
-                std::vector<Vertex> _vertices;
-                std::vector<uint32_t> _indices;
+                std::vector<Vertex> _vertices;          // Vector of vertices for rendering
+                std::vector<uint32_t> _indices;         // Vector of indices for rendering
 
                 void createVertexBuffer();
 
-                VkBuffer _vertexBuffer;
-                VkDeviceMemory _vertexBufferMemory;
+                VkBuffer _vertexBuffer;                                 // Vulkan buffer for vertex data
+                VkDeviceMemory _vertexBufferMemory;                     // Vulkan memory for vertex buffer
 
-                VkBuffer _indexBuffer;
-                VkDeviceMemory _indexBufferMemory;
+                VkBuffer _indexBuffer;                                  // Vulkan buffer for index data
+                VkDeviceMemory _indexBufferMemory;                      // Vulkan memory for index buffer
 
-                std::vector<VkBuffer> _uniformBuffers;
-                std::vector<VkDeviceMemory> _uniformBuffersMemory;
-                std::vector<void*> _uniformBuffersMapped;
+                std::vector<VkBuffer> _uniformBuffers;                  // Vector of Vulkan buffers for uniform data
+                std::vector<VkDeviceMemory> _uniformBuffersMemory;      // Vector of Vulkan memory for uniform buffers
+                std::vector<void*> _uniformBuffersMapped;               // Vector of mapped pointers to uniform buffer data
 
                 void createIndexBuffer();
                 void createUniformBuffers();
 
-                VkDescriptorPool _descriptorPool;
-                std::vector<VkDescriptorSet> _descriptorSets;
-                VkDescriptorSetLayout _descriptorSetLayout;
-                VkDebugUtilsMessengerEXT _debugMessenger;
+                VkDescriptorPool _descriptorPool;                       // Vulkan descriptor pool for managing descriptor sets
+                std::vector<VkDescriptorSet> _descriptorSets;           // Vector of Vulkan descriptor sets for uniform data
+                VkDescriptorSetLayout _descriptorSetLayout;             // Vulkan descriptor set layout for uniform data
+                VkDebugUtilsMessengerEXT _debugMessenger;               // Vulkan debug messenger for validation layers
 
                 void setupDebugMessenger(VkInstance instance);
                 void createDescriptorSetLayout();
                 void createDescriptorPool();
                 void createDescriptorSets(VkImageView textureImageView, VkSampler textureSampler);
 
-                std::vector<VkCommandBuffer> _commandBuffers;
+                std::vector<VkCommandBuffer> _commandBuffers;           // Vector of Vulkan command buffers for rendering
 
                 void createCommandBuffers();
 
-                std::vector<VkSemaphore> _imageAvailableSemaphores;
-                std::vector<VkSemaphore> _renderFinishedSemaphores;
-                std::vector<VkFence> _inFlightFences;
+                std::vector<VkSemaphore> _imageAvailableSemaphores;     // Vector of Vulkan semaphores for image availability
+                std::vector<VkSemaphore> _renderFinishedSemaphores;     // Vector of Vulkan semaphores for rendering completion
+                std::vector<VkFence> _inFlightFences;                   // Vector of Vulkan fences for synchronization
 
                 void createSyncObjects();
 
