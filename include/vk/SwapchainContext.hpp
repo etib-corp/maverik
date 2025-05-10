@@ -24,11 +24,22 @@ namespace maverik {
 
                 void recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue);
 
+                void createTextureImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, const std::string& texturePath);
+
             protected:
                 // In addition to the base swapchain
                 std::vector<VkImage> _swapchainImages;
 
                 void createImageViews(VkDevice logicalDevice);
+
+                // Texture images
+                VkImage _textureImage;
+                VkDeviceMemory _textureImageMemory;
+                VkImageView _textureImageView;
+                VkSampler _textureSampler;
+
+                void createTextureImageView(VkDevice logicalDevice);
+                void createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice);
 
                 // Depth images
                 VkImage _depthImage;
@@ -59,7 +70,7 @@ namespace maverik {
                 void createDepthResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkSampleCountFlagBits msaaSamples);
                 void createFramebuffers(VkDevice logicalDevice);
 
-                VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkDevice logicalDevice);
+                VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
 
         };
     }

@@ -25,6 +25,9 @@ namespace maverik {
 
             VkRenderPass _renderPass;
 
+            uint32_t _mipLevels;
+
+
             #if defined(XIDER_VK_IMPLEMENTATION)
                 ASwapchain<VkSwapchainKHR> _swapchain;
             #elif defined(XIDER_XR_IMPLEMENTATION)

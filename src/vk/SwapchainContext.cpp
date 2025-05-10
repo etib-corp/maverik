@@ -5,7 +5,10 @@
 ** SwapchainContext
 */
 
-#include "SwapchainContext.hpp"
+#include "vk/SwapchainContext.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "include/stb_image.h"
 
 ////////////////////
 // Public methods //
@@ -172,7 +175,7 @@ void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
     _imageViews.resize(_swapchainImages.size());
 
     for (uint32_t i = 0; i < _swapchainImages.size(); i++) {
-        _imageViews[i] = this->createImageView(_swapchainImages[i], _swapchainFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, logicalDevice);
+        _imageViews[i] = this->createImageView(_swapchainImages[i], _swapchainFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
     }
 }
 
@@ -187,14 +190,13 @@ void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
  * @param format The format of the image view (e.g., VK_FORMAT_R8G8B8A8_SRGB).
  * @param aspectFlags Specifies which aspect(s) of the image are included in the view 
  *                    (e.g., VK_IMAGE_ASPECT_COLOR_BIT for color images).
- * @param mipLevels The number of mipmap levels to include in the view.
  * @param logicalDevice The Vulkan logical device used to create the image view.
  *
  * @return A VkImageView handle representing the created image view.
  *
  * @throws std::runtime_error If the image view creation fails.
  */
-VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkDevice logicalDevice)
+VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice)
 {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -206,7 +208,7 @@ VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkForm
     viewInfo.subresourceRange.levelCount = 1;
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
-    viewInfo.subresourceRange.levelCount = mipLevels;
+    viewInfo.subresourceRange.levelCount = _mipLevels;
 
     VkImageView imageView;
     if (vkCreateImageView(logicalDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
@@ -351,6 +353,75 @@ void maverik::vk::SwapchainContext::createRenderPass(VkPhysicalDevice physicalDe
     }
 }
 
+void maverik::vk::SwapchainContext::createTextureImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, const std::string& texturePath)
+{
+    int texWidth = 0;
+    int texHeight = 0;
+    int texChannels = 0;
+    stbi_uc* pixels = stbi_load(texturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    if (!pixels) {
+        throw std::runtime_error("Failed to load texture image !");
+    }
+
+    _mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+    Utils::createBuffer(logicalDevice, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+        memcpy(data, pixels, static_cast<size_t>(imageSize));
+    vkUnmapMemory(logicalDevice, stagingBufferMemory);
+
+    stbi_image_free(pixels);
+
+    Utils::createImage(logicalDevice, physicalDevice, texWidth, texHeight, _mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _textureImage, _textureImageMemory);
+
+    Utils::transitionImageLayout(logicalDevice, commandPool, graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _mipLevels);
+    Utils::copyBufferToImage(logicalDevice, commandPool, graphicsQueue, stagingBuffer, _textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    Utils::generateMipmaps(physicalDevice, logicalDevice, commandPool, graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, _mipLevels);
+
+    vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+    vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+}
+
+void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevice)
+{
+    _textureImageView = this->createImageView(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+}
+
+void maverik::vk::SwapchainContext::createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice)
+{
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = static_cast<float>(_mipLevels);
+    samplerInfo.mipLodBias = 0.0f;
+
+    if (vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &_textureSampler) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create texture sampler !");
+    }
+}
+
 /////////////////////
 // Private methods //
 /////////////////////
@@ -457,7 +528,7 @@ void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice,
     VkFormat colorFormat = _swapchainFormat;
 
     Utils::createImage(logicalDevice, physicalDevice, _swapchainExtent.width, _swapchainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _colorImage, _colorImageMemory);
-    _colorImageView = this->createImageView(_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, logicalDevice);
+    _colorImageView = this->createImageView(_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
 }
 
 /**
@@ -478,7 +549,7 @@ void maverik::vk::SwapchainContext::createDepthResources(VkDevice logicalDevice,
     VkFormat depthFormat = Utils::findDepthFormat(physicalDevice);
 
     Utils::createImage(logicalDevice, physicalDevice, _swapchainExtent.width, _swapchainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImage, _depthImageMemory);
-    _depthImageView = this->createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, logicalDevice);
+    _depthImageView = this->createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, logicalDevice);
     Utils::transitionImageLayout(logicalDevice, commandPool, graphicsQueue, _depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
 
