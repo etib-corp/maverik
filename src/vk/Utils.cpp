@@ -7,6 +7,17 @@
 
 #include "vk/Utils.hpp"
 
+/**
+ * @brief Reads the contents of a binary file into a vector of characters.
+ *
+ * This function opens the specified file in binary mode, reads its entire
+ * contents into a buffer, and returns the buffer as a std::vector<char>.
+ *
+ * @param filename The path to the file to be read.
+ * @return A std::vector<char> containing the contents of the file.
+ *
+ * @throws std::runtime_error If the file cannot be opened.
+ */
 std::vector<char> maverik::vk::Utils::readFile(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -309,6 +320,25 @@ void maverik::vk::Utils::transitionImageLayout(VkDevice logicalDevice, VkCommand
     Utils::endSingleTimeCommands(logicalDevice, commandPool, graphicsQueue, commandBuffer);
 }
 
+/**
+ * @brief Checks if a Vulkan physical device is suitable for use.
+ *
+ * This function evaluates whether a given Vulkan physical device meets the
+ * requirements for the application, including queue family support, device
+ * extension support, swap chain adequacy, and specific device features.
+ *
+ * @param device The Vulkan physical device to evaluate.
+ * @param surface The Vulkan surface associated with the application.
+ * @param deviceExtensions A list of required device extensions.
+ * @return true If the device is suitable for use.
+ * @return false If the device does not meet the requirements.
+ *
+ * The function performs the following checks:
+ * - Verifies that the device has the necessary queue families.
+ * - Ensures that all required device extensions are supported.
+ * - Checks that the swap chain is adequate (has at least one format and one present mode).
+ * - Confirms that the device supports anisotropic sampling.
+ */
 bool maverik::vk::Utils::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions)
 {
     QueueFamilyIndices indices = Utils::findQueueFamilies(device, surface);
@@ -325,6 +355,23 @@ bool maverik::vk::Utils::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR 
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
+/**
+ * @brief Creates a Vulkan buffer and allocates memory for it.
+ *
+ * This function encapsulates the creation of a Vulkan buffer and the allocation
+ * of its associated memory. It ensures that the buffer is properly created and
+ * bound to the allocated memory.
+ *
+ * @param logicalDevice The Vulkan logical device used to create the buffer.
+ * @param physicalDevice The Vulkan physical device used to find suitable memory types.
+ * @param size The size of the buffer in bytes.
+ * @param usage A bitmask specifying allowed usages of the buffer (e.g., vertex buffer, index buffer).
+ * @param properties A bitmask specifying the memory properties required for the buffer (e.g., host-visible, device-local).
+ * @param buffer A reference to a VkBuffer handle where the created buffer will be stored.
+ * @param bufferMemory A reference to a VkDeviceMemory handle where the allocated memory will be stored.
+ *
+ * @throws std::runtime_error If the buffer creation or memory allocation fails.
+ */
 void maverik::vk::Utils::createBuffer(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
     VkBufferCreateInfo bufferInfo{};
@@ -352,6 +399,20 @@ void maverik::vk::Utils::createBuffer(VkDevice logicalDevice, VkPhysicalDevice p
     vkBindBufferMemory(logicalDevice, buffer, bufferMemory, 0);
 }
 
+/**
+ * @brief Copies data from a Vulkan buffer to a Vulkan image.
+ *
+ * This function is used to transfer data from a buffer to an image in Vulkan. 
+ * It is typically used for uploading texture data to a GPU image resource.
+ *
+ * @param logicalDevice The Vulkan logical device used for the operation.
+ * @param commandPool The command pool from which the command buffer is allocated.
+ * @param graphicsQueue The graphics queue used to submit the command buffer.
+ * @param buffer The Vulkan buffer containing the data to be copied.
+ * @param image The Vulkan image to which the data will be copied.
+ * @param width The width of the image in pixels.
+ * @param height The height of the image in pixels.
+ */
 void maverik::vk::Utils::copyBufferToImage(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
 {
     VkCommandBuffer commandBuffer = Utils::beginSingleTimeCommands(logicalDevice, commandPool);
@@ -376,6 +437,25 @@ void maverik::vk::Utils::copyBufferToImage(VkDevice logicalDevice, VkCommandPool
     Utils::endSingleTimeCommands(logicalDevice, commandPool, graphicsQueue, commandBuffer);
 }
 
+/**
+ * @brief Generates mipmaps for a given Vulkan image.
+ *
+ * This function creates mipmaps for a Vulkan image by performing linear blitting
+ * between mip levels. It transitions image layouts and ensures proper synchronization
+ * for each mip level. The function assumes that the image format supports linear blitting.
+ *
+ * @param physicalDevice The Vulkan physical device used to query format properties.
+ * @param logicalDevice The Vulkan logical device used for command buffer operations.
+ * @param commandPool The command pool used to allocate the command buffer.
+ * @param graphicsQueue The graphics queue used to submit the command buffer.
+ * @param image The Vulkan image for which mipmaps are generated.
+ * @param imageFormat The format of the Vulkan image.
+ * @param texWidth The width of the base mip level of the image.
+ * @param texHeight The height of the base mip level of the image.
+ * @param mipLevels The total number of mip levels to generate.
+ *
+ * @throws std::runtime_error If the image format does not support linear blitting.
+ */
 void maverik::vk::Utils::generateMipmaps(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
 {
     VkFormatProperties formatProperties;
@@ -463,6 +543,20 @@ void maverik::vk::Utils::generateMipmaps(VkPhysicalDevice physicalDevice, VkDevi
     Utils::endSingleTimeCommands(logicalDevice, commandPool, graphicsQueue, commandBuffer);
 }
 
+/**
+ * @brief Copies data from one Vulkan buffer to another.
+ *
+ * This function performs a buffer-to-buffer copy operation using a single-time 
+ * command buffer. It is useful for transferring data between buffers, such as 
+ * staging buffer to a device-local buffer.
+ *
+ * @param logicalDevice The Vulkan logical device used to allocate and manage resources.
+ * @param commandPool The command pool from which the command buffer will be allocated.
+ * @param graphicsQueue The graphics queue used to submit the copy command.
+ * @param srcBuffer The source buffer containing the data to be copied.
+ * @param dstBuffer The destination buffer where the data will be copied to.
+ * @param size The size of the data to copy, in bytes.
+ */
 void maverik::vk::Utils::copyBuffer(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
     VkCommandBuffer commandBuffer = Utils::beginSingleTimeCommands(logicalDevice, commandPool);
@@ -474,6 +568,19 @@ void maverik::vk::Utils::copyBuffer(VkDevice logicalDevice, VkCommandPool comman
     Utils::endSingleTimeCommands(logicalDevice, commandPool, graphicsQueue, commandBuffer);
 }
 
+/**
+ * @brief Creates a Vulkan shader module from the given SPIR-V bytecode.
+ *
+ * @param logicalDevice The Vulkan logical device used to create the shader module.
+ * @param code A vector containing the SPIR-V bytecode for the shader.
+ * @return VkShaderModule The created Vulkan shader module.
+ *
+ * @throws std::runtime_error If the shader module creation fails.
+ *
+ * This function wraps the Vulkan `vkCreateShaderModule` function to simplify
+ * the creation of shader modules. The input SPIR-V bytecode is passed as a
+ * vector of bytes, which is converted to the required format for Vulkan.
+ */
 VkShaderModule maverik::vk::Utils::createShaderModule(VkDevice logicalDevice, const std::vector<char>& code)
 {
     VkShaderModuleCreateInfo createInfo{};
@@ -489,6 +596,20 @@ VkShaderModule maverik::vk::Utils::createShaderModule(VkDevice logicalDevice, co
     return shaderModule;
 }
 
+/**
+ * @brief Populates a VkDebugUtilsMessengerCreateInfoEXT structure with the necessary
+ *        information for creating a Vulkan debug messenger.
+ *
+ * @param createInfo Reference to a VkDebugUtilsMessengerCreateInfoEXT structure that will
+ *        be populated with the debug messenger creation details.
+ * @param debugCallback A function pointer to the debug callback function that will handle
+ *        debug messages from the Vulkan validation layers.
+ *
+ * The populated structure includes:
+ * - Message severity levels: Verbose, Warning, and Error.
+ * - Message types: General, Validation, and Performance.
+ * - The user-defined callback function for handling debug messages.
+ */
 void maverik::vk::Utils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo, PFN_vkDebugUtilsMessengerCallbackEXT debugCallback)
 {
     createInfo = {};
@@ -498,6 +619,26 @@ void maverik::vk::Utils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerC
     createInfo.pfnUserCallback = debugCallback;
 }
 
+/**
+ * @brief Creates a debug messenger for Vulkan instance debugging.
+ *
+ * This function wraps the Vulkan function `vkCreateDebugUtilsMessengerEXT` to create
+ * a debug messenger for capturing debug messages from the Vulkan validation layers.
+ *
+ * @param instance The Vulkan instance to associate the debug messenger with.
+ * @param pCreateInfo A pointer to a `VkDebugUtilsMessengerCreateInfoEXT` structure
+ *                    specifying the details of the debug messenger to be created.
+ * @param pAllocator A pointer to a `VkAllocationCallbacks` structure for custom memory
+ *                   allocation callbacks, or `nullptr` to use the default allocator.
+ * @param pDebugMessenger A pointer to a `VkDebugUtilsMessengerEXT` handle where the
+ *                        created debug messenger will be stored.
+ * @return `VK_SUCCESS` if the debug messenger was successfully created, or
+ *         `VK_ERROR_EXTENSION_NOT_PRESENT` if the `vkCreateDebugUtilsMessengerEXT`
+ *         function is not available.
+ *
+ * @note This function requires the `VK_EXT_debug_utils` extension to be enabled.
+ *       Ensure that the extension is available and enabled in the Vulkan instance.
+ */
 VkResult maverik::vk::Utils::createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -623,6 +764,16 @@ void maverik::vk::Utils::endSingleTimeCommands(VkDevice logicalDevice, VkCommand
     vkFreeCommandBuffers(logicalDevice, commandPool, 1, &commandBuffer);
 }
 
+/**
+ * @brief Checks if a Vulkan physical device supports the required extensions.
+ *
+ * This function queries the available extensions for a given Vulkan physical device
+ * and verifies if all the required extensions specified in the input list are supported.
+ *
+ * @param device The Vulkan physical device to check for extension support.
+ * @param deviceExtensions A vector of required device extension names as C-style strings.
+ * @return true if all required extensions are supported by the device, false otherwise.
+ */
 bool maverik::vk::Utils::checkDeviceExtensionSupport(VkPhysicalDevice device, std::vector<const char*> deviceExtensions)
 {
     uint32_t extensionCount;
