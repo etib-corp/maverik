@@ -8,7 +8,7 @@
 #include "vk/SwapchainContext.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "include/stb_image.h"
+#include "stb_image.h"
 
 ////////////////////
 // Public methods //
@@ -551,44 +551,4 @@ void maverik::vk::SwapchainContext::createDepthResources(VkDevice logicalDevice,
     Utils::createImage(logicalDevice, physicalDevice, _swapchainExtent.width, _swapchainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImage, _depthImageMemory);
     _depthImageView = this->createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, logicalDevice);
     Utils::transitionImageLayout(logicalDevice, commandPool, graphicsQueue, _depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
-}
-
-/**
- * @brief Creates framebuffers for the swapchain images.
- *
- * This function initializes a framebuffer for each image view in the swapchain.
- * Each framebuffer is configured with a color attachment, a depth attachment,
- * and the corresponding swapchain image view. The framebuffers are stored in
- * the `_swapchainFramebuffers` member variable.
- *
- * @param renderPass The Vulkan render pass to be used with the framebuffers.
- * @param logicalDevice The Vulkan logical device used to create the framebuffers.
- *
- * @throws std::runtime_error If framebuffer creation fails.
- *
- */
-void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice)
-{
-    _swapchainFramebuffers.resize(_imageViews.size());
-
-    for (size_t i = 0; i < _imageViews.size(); i++) {
-        std::array<VkImageView, 3> attachments = {
-            _colorImageView,
-            _depthImageView,
-            _imageViews[i]
-        };
-
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = _renderPass;
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = _swapchainExtent.width;
-        framebufferInfo.height = _swapchainExtent.height;
-        framebufferInfo.layers = 1;
-
-        if (vkCreateFramebuffer(logicalDevice, &framebufferInfo, nullptr, &_swapchainFramebuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create framebuffer!");
-        }
-    }
 }

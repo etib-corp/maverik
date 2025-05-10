@@ -7,6 +7,23 @@
 
 #include "vk/Utils.hpp"
 
+std::vector<char> maverik::vk::Utils::readFile(const std::string& filename)
+{
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filename);
+    }
+
+    size_t fileSize = (size_t) file.tellg();
+    std::vector<char> buffer(fileSize);
+
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+    file.close();
+    return buffer;
+}
+
 /**
 * @brief Queries the swap chain support details for a given physical device and surface.
 *
@@ -445,6 +462,52 @@ void maverik::vk::Utils::generateMipmaps(VkPhysicalDevice physicalDevice, VkDevi
 
     Utils::endSingleTimeCommands(logicalDevice, commandPool, graphicsQueue, commandBuffer);
 }
+
+void maverik::vk::Utils::copyBuffer(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    VkCommandBuffer commandBuffer = Utils::beginSingleTimeCommands(logicalDevice, commandPool);
+
+    VkBufferCopy copyRegion{};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    Utils::endSingleTimeCommands(logicalDevice, commandPool, graphicsQueue, commandBuffer);
+}
+
+VkShaderModule maverik::vk::Utils::createShaderModule(VkDevice logicalDevice, const std::vector<char>& code)
+{
+    VkShaderModuleCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = code.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+    VkShaderModule shaderModule;
+    if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create shader module!");
+    }
+
+    return shaderModule;
+}
+
+void maverik::vk::Utils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo, PFN_vkDebugUtilsMessengerCallbackEXT debugCallback)
+{
+    createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+}
+
+VkResult maverik::vk::Utils::createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    } else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
 
 /////////////////////
 // Private methods //

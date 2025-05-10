@@ -21,7 +21,6 @@ namespace maverik {
                 // Constructors
                 Software();
                 Software(const std::string &appName, const Version &appVersion, const std::string &engineName, const Version &engineVersion);
-                Software(const Software &other);
 
                 // Destructor
                 ~Software();

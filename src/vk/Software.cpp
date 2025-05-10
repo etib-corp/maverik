@@ -49,24 +49,6 @@ maverik::vk::Software::Software(const std::string &appName, const Version &appVe
     this->_graphicalContext = std::make_shared<maverik::vk::GraphicalContext>(appName, appVersion, engineName, engineVersion);
 }
 
-/*
-** Copy constructor for the Software class.
-**
-** This constructor is used to create a new Software object from an existing one.
-** It initializes the application name, application version, engine name and engine version.
-**
-** @param other the Software object to copy
-**
-*/
-maverik::vk::Software::Software(const Software &other)
-{
-    this->_appName = other._appName;
-    this->_appVersion = new Version(*other._appVersion);
-    this->_engineName = other._engineName;
-    this->_engineVersion = new Version(*other._engineVersion);
-    this->_graphicalContext = std::make_shared<maverik::vk::GraphicalContext>(*other._graphicalContext);
-}
-
 maverik::vk::Software::~Software()
 {
 }

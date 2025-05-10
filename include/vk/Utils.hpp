@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <fstream>
 
 #include <vulkan/vulkan.h>
 
@@ -84,6 +85,8 @@ namespace maverik {
                     }
                 };
 
+                static std::vector<char> readFile(const std::string& filename);
+
                 static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 
                 static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
@@ -101,6 +104,14 @@ namespace maverik {
                 static void copyBufferToImage(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
                 static void generateMipmaps(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+
+                static void copyBuffer(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+                static VkShaderModule createShaderModule(VkDevice logicalDevice, const std::vector<char>& code);
+
+                static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo, PFN_vkDebugUtilsMessengerCallbackEXT debugCallback);
+
+                static VkResult createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 
             private:
                 static VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);

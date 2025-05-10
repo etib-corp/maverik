@@ -68,7 +68,6 @@ namespace maverik {
 
                 void createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples);
                 void createDepthResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkSampleCountFlagBits msaaSamples);
-                void createFramebuffers(VkDevice logicalDevice);
 
                 VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
 
