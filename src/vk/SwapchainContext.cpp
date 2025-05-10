@@ -27,13 +27,14 @@
  * @param graphicsQueue The Vulkan graphics queue used for rendering commands.
  * @param renderPass The Vulkan render pass used for rendering operations.
  */
-maverik::vk::SwapchainContext::SwapchainContext(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue, VkRenderPass renderPass)
+maverik::vk::SwapchainContext::SwapchainContext(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue)
 {
     this->init(surface, physicalDevice, logicalDevice, window);
 
     this->createColorResources(logicalDevice, physicalDevice, msaaSamples);
     this->createDepthResources(logicalDevice, physicalDevice, commandPool, graphicsQueue, msaaSamples);
-    this->createFramebuffers(logicalDevice, renderPass);
+    this->createFramebuffers(logicalDevice);
+    this->createRenderPass(physicalDevice, logicalDevice, msaaSamples);
 }
 
 /**
@@ -61,7 +62,7 @@ maverik::vk::SwapchainContext::~SwapchainContext()
  * @param graphicsQueue The Vulkan graphics queue used for rendering operations.
  * @param renderPass The Vulkan render pass used for rendering.
  */
-void maverik::vk::SwapchainContext::recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue, VkRenderPass renderPass)
+void maverik::vk::SwapchainContext::recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue)
 {
     int width = 0;
     int height = 0;
@@ -78,7 +79,7 @@ void maverik::vk::SwapchainContext::recreate(VkSurfaceKHR surface, VkPhysicalDev
 
     this->createColorResources(logicalDevice, physicalDevice, msaaSamples);
     this->createDepthResources(logicalDevice, physicalDevice, commandPool, graphicsQueue, msaaSamples);
-    this->createFramebuffers(logicalDevice, renderPass);
+    this->createFramebuffers(logicalDevice);
 }
 
 ///////////////////////
@@ -228,7 +229,7 @@ VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkForm
  *
  * @throws std::runtime_error If framebuffer creation fails.
  */
-void maverik::vk::SwapchainContext::createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice)
+void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice)
 {
     _swapchainFramebuffers.resize(_imageViews.size());
 
@@ -241,7 +242,7 @@ void maverik::vk::SwapchainContext::createFramebuffers(VkRenderPass renderPass, 
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.renderPass = _renderPass;
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = _swapchainExtent.width;
@@ -274,6 +275,80 @@ void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
     }
 
     vkDestroySwapchainKHR(logicalDevice, _swapchain.swapchain, nullptr);
+}
+
+void maverik::vk::SwapchainContext::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSampleCountFlagBits msaaSamples)
+{
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = _swapchainFormat;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.samples = msaaSamples;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = Utils::findDepthFormat(physicalDevice);
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthAttachment.samples = msaaSamples;
+
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentDescription colorAttachmentResolve{};
+    colorAttachmentResolve.format = _swapchainFormat;
+    colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference colorAttachmentResolveRef{};
+    colorAttachmentResolveRef.attachment = 2;
+    colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
+    subpass.pResolveAttachments = &colorAttachmentResolveRef;
+
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    renderPassInfo.pAttachments = attachments.data();
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
+
+    if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create render pass!");
+    }
 }
 
 /////////////////////
@@ -421,7 +496,7 @@ void maverik::vk::SwapchainContext::createDepthResources(VkDevice logicalDevice,
  * @throws std::runtime_error If framebuffer creation fails.
  *
  */
-void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass)
+void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice)
 {
     _swapchainFramebuffers.resize(_imageViews.size());
 
@@ -434,7 +509,7 @@ void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice, V
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.renderPass = _renderPass;
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = _swapchainExtent.width;

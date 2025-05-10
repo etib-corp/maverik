@@ -23,6 +23,8 @@ namespace maverik {
             VkExtent2D _swapchainExtent;
             std::vector<VkFramebuffer> _swapchainFramebuffers;
 
+            VkRenderPass _renderPass;
+
             #if defined(XIDER_VK_IMPLEMENTATION)
                 ASwapchain<VkSwapchainKHR> _swapchain;
             #elif defined(XIDER_XR_IMPLEMENTATION)
