@@ -39,7 +39,7 @@ void maverik::xr::GraphicalContext::createInstance()
     PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
     PFN_xrCreateVulkanInstanceKHR xrCreateVulkanInstanceKHR = nullptr;
 
-    graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_2_KHR;
+    graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR;
     if (xrGetInstanceProcAddr(_XRinstance, "xrGetVulkanGraphicsRequirements2KHR",
         reinterpret_cast<PFN_xrVoidFunction *>(&xrGetVulkanGraphicsRequirements2KHR)) != XR_SUCCESS) {
         std::cerr << "Failed to get xrGetVulkanGraphicsRequirements2KHR function" << std::endl;

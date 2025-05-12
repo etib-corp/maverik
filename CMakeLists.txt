@@ -42,7 +42,7 @@ if(ENABLE_XR)
         add_library(maverik STATIC ${SOURCES_COMMON} ${SOURCES_XR})
     endif()
 
-    target_link_libraries(maverik PRIVATE openxr_loader)
+    target_link_libraries(maverik PRIVATE openxr_loader vulkan)
 else()
     set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
