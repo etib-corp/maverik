@@ -58,6 +58,3 @@ namespace maverik {
         };
     }
 }
-
-
-#endif /* !RENDERINGCONTEXT_HPP_ */
