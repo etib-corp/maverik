@@ -13,12 +13,10 @@
 #include <vector>
 
 #if defined(__linux__) || defined(__APPLE__)
-extern const char *BINARY_NAME;
+extern const char *BINARY_NAME;         ///< The name of the binary, used for logging
 #include <cxxabi.h>
 #include <execinfo.h>
 #elif defined(_WIN32)
-#include <windows.h>
-#include <dbghelp.h>
 #endif
 
 /**
@@ -60,9 +58,22 @@ namespace maverik {
                 std::ostream &_stream;      ///< A reference to the output stream where log messages will be written
         };
 
+        /**
+         * @class Backtrace
+         * @brief The `maverik::vk::Backtrace` class provides functionality to capture and retrieve the current backtrace of function calls in the program. It is designed to work on different platforms, including Linux and Windows, and provides a method to obtain a vector of strings representing the backtrace.
+         * @note This class has one static method `getBacktrace`. This method definition is platform-dependent, and the implementation may vary based on the operating system.
+         * @todo Implement the Windows-specific backtrace retrieval logic.
+         */
         class Backtrace {
             public:
                 #if defined(__linux__) || defined(__APPLE__)
+                /**
+                 * @brief This function retrieves the current backtrace of function calls in the program. It captures a specified number of stack frames and returns them as a vector of strings. The `size` parameter specifies the maximum number of frames to capture, and the `skip` parameter allows skipping a specified number of frames from the beginning of the backtrace.
+                 *
+                 * @param size Specifies the maximum number of frames to capture. Default is 128.
+                 * @param skip Specifies the number of frames to skip from the beginning of the backtrace (last call). Default is 0.
+                 * @return std::vector<std::string> A vector of strings representing the backtrace, with each string containing information about a specific frame following the format: "./path/to/binary() [function address in binary]".
+                 */
                 static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
                     void **array = (void **)malloc(sizeof(void *) * size);
                     size_t count = backtrace(array, size);
@@ -80,6 +91,13 @@ namespace maverik {
                     return result;
                 }
             #elif defined(_WIN32)
+                /**
+                 * @brief This function retrieves the current backtrace of function calls in the program. It captures a specified number of stack frames and returns them as a vector of strings. The `size` parameter specifies the maximum number of frames to capture, and the `skip` parameter allows skipping a specified number of frames from the beginning of the backtrace.
+                 *
+                 * @param size Specifies the maximum number of frames to capture. Default is 128.
+                 * @param skip Specifies the number of frames to skip from the beginning of the backtrace (last call). Default is 0.
+                 * @return std::vector<std::string> A vector of strings representing the backtrace, with each string containing information about a specific frame following the format: "./path/to/binary() [function address in binary]".
+                 */
                 static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
                     // Windows-specific implementation
                     return {};
