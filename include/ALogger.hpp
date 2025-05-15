@@ -15,7 +15,14 @@
 #include <string>
 #include <sstream>
 
+/**
+ * @brief This macro allows getting the name of the current
+ */
 #define PROPER_FILE std::string(__FILE__).substr(std::string(__FILE__).find_last_of("/\\") + 1)
+
+/**
+ * @brief This macro allows getting a pretty print of the current filename and line number.
+ */
 #define LOCATION std::string("In ") + std::string(__PRETTY_FUNCTION__) + std::string(" at ") + PROPER_FILE + ":" + std::to_string(__LINE__)
 
 /**
