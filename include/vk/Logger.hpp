@@ -13,11 +13,7 @@
 #include <vector>
 
 #if defined(__linux__) || defined(__APPLE__)
-
-#ifndef BINARY_NAME
-#define BINARY_NAME "maverik"
-#endif
-
+extern const char *BINARY_NAME;
 #include <cxxabi.h>
 #include <execinfo.h>
 #elif defined(_WIN32)
