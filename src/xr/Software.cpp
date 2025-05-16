@@ -63,7 +63,7 @@ void maverik::xr::Software::createInstance()
 
     XrGraphicsBindingVulkan2KHR graphicsBinding{};
 
-    graphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_2_KHR;
+    graphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
     graphicsBinding.next = nullptr;
     graphicsBinding.instance = _graphicalContext->getInstance();
     graphicsBinding.device = vulkanContext->logicalDevice;
