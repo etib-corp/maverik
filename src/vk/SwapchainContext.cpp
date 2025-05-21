@@ -279,6 +279,20 @@ void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
     vkDestroySwapchainKHR(logicalDevice, _swapchain.swapchain, nullptr);
 }
 
+/**
+ * @brief Creates a Vulkan render pass for the swapchain context.
+ *
+ * This function sets up a render pass with color, depth, and resolve attachments,
+ * supporting multisample anti-aliasing (MSAA) as specified by the msaaSamples parameter.
+ * The render pass is configured for use in a graphics pipeline, with appropriate
+ * subpass and dependency settings for color and depth outputs.
+ *
+ * @param physicalDevice The Vulkan physical device used to determine supported formats.
+ * @param logicalDevice The Vulkan logical device used to create the render pass.
+ * @param msaaSamples The number of samples per pixel for MSAA (multisample anti-aliasing).
+ *
+ * @throws std::runtime_error If the render pass creation fails.
+ */
 void maverik::vk::SwapchainContext::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSampleCountFlagBits msaaSamples)
 {
     VkAttachmentDescription colorAttachment{};
@@ -353,6 +367,23 @@ void maverik::vk::SwapchainContext::createRenderPass(VkPhysicalDevice physicalDe
     }
 }
 
+/**
+ * @brief Creates a Vulkan texture image from a file and prepares it for use in shaders.
+ *
+ * Loads an image from the specified file path, uploads it to a Vulkan image resource,
+ * generates mipmaps, and transitions the image layout for shader access.
+ *
+ * @param physicalDevice The Vulkan physical device used for memory property queries.
+ * @param logicalDevice The Vulkan logical device used for resource creation.
+ * @param commandPool The command pool used for submitting transfer and layout transition commands.
+ * @param graphicsQueue The graphics queue used to execute transfer and layout transition commands.
+ * @param texturePath The file path to the texture image to be loaded.
+ *
+ * @throws std::runtime_error If the texture image fails to load.
+ *
+ * @note The function creates a staging buffer for image data transfer, allocates and fills
+ *       device-local image memory, generates mipmaps, and cleans up temporary resources.
+ */
 void maverik::vk::SwapchainContext::createTextureImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, const std::string& texturePath)
 {
     int texWidth = 0;
@@ -387,11 +418,32 @@ void maverik::vk::SwapchainContext::createTextureImage(VkPhysicalDevice physical
     vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
 }
 
+/**
+ * @brief Creates an image view for the swapchain's texture image.
+ *
+ * This function initializes the `_textureImageView` member by creating an image view
+ * for the swapchain's texture image (`_textureImage`) using the specified logical device.
+ * The image view is created with the `VK_FORMAT_R8G8B8A8_SRGB` format and the color aspect flag.
+ *
+ * @param logicalDevice The Vulkan logical device used to create the image view.
+ */
 void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevice)
 {
     _textureImageView = this->createImageView(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
 }
 
+/**
+ * @brief Creates a Vulkan texture sampler for the swapchain context.
+ *
+ * This function initializes a VkSampler object with linear filtering, repeat addressing mode,
+ * and enables anisotropic filtering using the maximum supported anisotropy level of the physical device.
+ * The sampler is configured for use with normalized coordinates and supports mipmapping.
+ *
+ * @param logicalDevice The Vulkan logical device used to create the sampler.
+ * @param physicalDevice The Vulkan physical device used to query device properties.
+ *
+ * @throws std::runtime_error If the sampler creation fails.
+ */
 void maverik::vk::SwapchainContext::createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceProperties properties{};
