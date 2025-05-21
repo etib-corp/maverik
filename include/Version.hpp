@@ -13,7 +13,10 @@
 namespace maverik {
     class Version {
         public:
+            // Constructor
             Version(unsigned int major, unsigned int minor, unsigned int patch);
+
+            // Destructor
             ~Version();
 
             uint32_t to_uint32_t();
