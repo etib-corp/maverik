@@ -17,7 +17,7 @@ void totalFailure()
 
 class Toto {
 public:
-	void test()
+	void test(int a, int b, Toto *toto)
 	{
 		totalFailure();
 	}
@@ -37,6 +37,6 @@ int main()
 	// LOG(maverik::ALogger::INFO, "This is an info message");
 	// LOG(maverik::ALogger::DEBUG, "This is a debug message");
 	Toto toto;
-	toto.test();
+	toto.test(1, 2, &toto);
 	return 0;
 }

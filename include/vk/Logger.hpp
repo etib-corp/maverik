@@ -12,10 +12,14 @@
 #include <format>
 #include <vector>
 
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(__linux__)
 extern const char *BINARY_NAME;         ///< The name of the binary, used for logging
 #include <cxxabi.h>
 #include <execinfo.h>
+#elif defined(__APPLE__)
+#include <dlfcn.h>
+#include <execinfo.h>
+#include <stdio.h>
 #elif defined(_WIN32)
 #endif
 
@@ -66,7 +70,7 @@ namespace maverik {
          */
         class Backtrace {
             public:
-                #if defined(__linux__) || defined(__APPLE__)
+                #if defined(__linux__)
                 /**
                  * @brief This function retrieves the current backtrace of function calls in the program. It captures a specified number of stack frames and returns them as a vector of strings. The `size` parameter specifies the maximum number of frames to capture, and the `skip` parameter allows skipping a specified number of frames from the beginning of the backtrace.
                  *
@@ -75,18 +79,81 @@ namespace maverik {
                  * @return std::vector<std::string> A vector of strings representing the backtrace, with each string containing information about a specific frame following the format: "./path/to/binary() [function address in binary]".
                  */
                 static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
-                    void **array = (void **)malloc(sizeof(void *) * size);
+                    #if defined(__linux__)
+                    int skipFrameBeforeMain = 3;
+                    #elif defined(__APPLE__)
+                    int skipFrameBeforeMain = 1;
+                    #endif
+                    void **array = static_cast<void**>(malloc(sizeof(void *) * size));
+                    if (!array) {
+                        throw std::runtime_error("Failed to allocate memory for backtrace array");
+                    }
                     size_t count = backtrace(array, size);
                     char **strings = backtrace_symbols(array, count);
                     std::vector<std::string> result;
                     for (size_t i = skip; i < count; ++i) {
                         result.push_back(strings[i]);
                     }
-                    for (int i = 0; i < 3; i++) {
+                    for (int i = 0; i < skipFrameBeforeMain; i++) {
                         result.pop_back();
                     }
 
                     free(strings);
+                    free(array);
+                    return result;
+                }
+            #elif defined(__APPLE__)
+                /**
+                 * @brief This function retrieves the current backtrace of function calls in the program. It captures a specified number of stack frames and returns them as a vector of strings. The `size` parameter specifies the maximum number of frames to capture, and the `skip` parameter allows skipping a specified number of frames from the beginning of the backtrace.
+                 *
+                 * @param size Specifies the maximum number of frames to capture. Default is 128.
+                 * @param skip Specifies the number of frames to skip from the beginning of the backtrace (last call). Default is 0.
+                 * @return std::vector<std::string> A vector of strings representing the backtrace, with each string containing information about a specific frame following the format: "./path/to/binary() [function address in binary]".
+                 */
+                static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
+                    void **array = static_cast<void**>(malloc(sizeof(void *) * size));
+                    if (!array) {
+                        throw std::runtime_error("Failed to allocate memory for backtrace array");
+                    }
+                    std::vector<std::string> result;
+                    size_t count = backtrace(array, size);
+
+                    for (int i = skip; i < count - 1; i++) {
+                        Dl_info info = {0};
+                        dladdr(array[i], &info);
+                        std::stringstream ss;
+                        ss << "atos -o " << info.dli_fname << " -l " << std::hex << reinterpret_cast<uint64_t>(info.dli_fbase) << ' ' << reinterpret_cast<uint64_t>(array[i]);
+
+                        FILE *fp = popen(ss.str().c_str(), "r");
+
+                        if (!fp) {
+                            free(array);
+                            throw std::runtime_error("Failed to execute atos command");
+                        }
+                        char buffer[1024] = {0};
+                        fgets(buffer, sizeof(buffer), fp);
+                        std::string tmp = std::string(buffer);
+                        std::cout << "buffer: " << tmp << std::endl;
+                        size_t pos = tmp.find(" (in maverik) ");
+                        if (pos != std::string::npos) {
+                            tmp.erase(pos, std::string(" (in maverik) ").length());
+                            tmp.insert(pos, " at ");
+                        }
+                        size_t start = tmp.find_last_of('(');
+                        size_t end = tmp.find(')', start);
+                        if (start != std::string::npos && end != std::string::npos && end > start) {
+                            std::string filename = tmp.substr(start + 1, end - start - 1);
+                            tmp.erase(start, end - start + 1);
+                            tmp.insert(start, filename);
+                        }
+                        tmp.insert(0, "called by ");
+                        size_t mainPos = tmp.find("called by main ");
+                        if (mainPos != std::string::npos) {
+                            tmp.replace(mainPos, std::string("called by main ").length(), "called by main() ");
+                        }
+                        result.push_back(tmp);
+                        pclose(fp);
+                    }
                     free(array);
                     return result;
                 }
