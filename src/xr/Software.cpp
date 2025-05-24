@@ -73,7 +73,7 @@ void maverik::xr::Software::createInstance()
     XrSessionCreateInfo sessionInfo{};
 
     sessionInfo.type = XR_TYPE_SESSION_CREATE_INFO;
-    sessionInfo.next;
+    sessionInfo.next = &graphicsBinding;
     sessionInfo.systemId = _XRsystemID;
 
     if (xrCreateSession(_XRinstance, &sessionInfo, &_XRsession) != XR_SUCCESS) {

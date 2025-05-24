@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace maverik {
-    class ASwapchainContext {
+    class git ASwapchainContext {
         public:
             virtual ~ASwapchainContext() = default;
         protected:
