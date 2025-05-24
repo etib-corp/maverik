@@ -13,6 +13,7 @@ maverik::vk::Logger::Logger(std::ostream &stream, const std::string& programName
     _programName = programName + "    ";
 }
 
+#if defined(__linux__)
 void maverik::vk::Logger::log(const std::string &message, const std::string& logLevel, const std::string& caller) const
 {
     std::string out = "";
@@ -55,3 +56,31 @@ void maverik::vk::Logger::log(const std::string &message, const std::string& log
     _stream << out;
     _stream.flush();
 }
+#elif defined(__APPLE__)
+void maverik::vk::Logger::log(const std::string &message, const std::string& logLevel, const std::string& caller) const
+{
+    std::string out = "";
+    std::stringstream ss;
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    auto backtrace = Backtrace::getBacktrace(128, 4);
+    std::string addr = "";
+    std::string fmt = "";
+    FILE *fp = nullptr;
+
+    out += _env;
+    out += _programName;
+    out += logLevel;
+    ss << std::put_time(&tm, "%b-%d %H:%M:%S    ");
+    out += ss.str();
+    out += message + "    \n\t";
+    out += caller + "    \n";
+    for (const auto& line : backtrace) {
+        out += "\t" + line;
+    }
+    _stream << out;
+    _stream.flush();
+}
+#elif defined(_WIN32)
+
+#endif
