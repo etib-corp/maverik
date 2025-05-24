@@ -49,20 +49,20 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallback(VkDebugUtilsMessageSe
  * @param textureImageView The Vulkan image view for the texture to be used in the descriptor sets.
  * @param textureSampler The Vulkan sampler for the texture to be used in the descriptor sets.
  */
-maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowProperties, VkInstance instance, VkRenderPass renderPass, VkImageView textureImageView, VkSampler textureSampler)
+maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowProperties, const RenderingContextProperties &renderingContextProperties)
 {
     this->initWindow(windowProperties.width, windowProperties.height, windowProperties.title);
-    this->createSurface(instance);
-    this->pickPhysicalDevice(instance);
+    this->createSurface(renderingContextProperties._instance);
+    this->pickPhysicalDevice(renderingContextProperties._instance);
     this->createLogicalDevice();
     this->createDescriptorSetLayout();
-    this->createGraphicsPipeline(renderPass);
+    this->createGraphicsPipeline(renderingContextProperties._renderPass);
     this->createCommandPool();
     this->createVertexBuffer();
     this->createIndexBuffer();
     this->createUniformBuffers();
     this->createDescriptorPool();
-    this->createDescriptorSets(textureImageView, textureSampler);
+    this->createDescriptorSets(renderingContextProperties._textureImageView, renderingContextProperties._textureSampler);
     this->createCommandBuffers();
     this->createSyncObjects();
 }
