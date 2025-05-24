@@ -7,9 +7,10 @@
 
 #include "AAssetManager.hpp"
 
-void maverik::AAssetManager::addAsset(const std::string &path, const std::string& content)
+std::shared_ptr<maverik::FileAsset> maverik::AAssetManager::addAsset(const std::string &path, const std::ustring& content)
 {
-    _assets[path] = std::make_pair(content, content.size());
+    _assets[path] = content;
+    return std::make_shared<maverik::FileAsset>(_assets[path]);
 }
 
 void maverik::AAssetManager::removeAsset(const std::string &path)
@@ -20,4 +21,12 @@ void maverik::AAssetManager::removeAsset(const std::string &path)
 bool maverik::AAssetManager::assetExists(const std::string &path) const
 {
     return _assets.find(path) != _assets.end();
+}
+
+std::shared_ptr<maverik::FileAsset> maverik::AAssetManager::getAsset(const std::string &path)
+{
+    if (assetExists(path)) {
+        return std::make_shared<maverik::FileAsset>(_assets[path]);
+    }
+    return nullptr;
 }
