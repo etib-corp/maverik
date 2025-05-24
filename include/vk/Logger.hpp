@@ -79,11 +79,6 @@ namespace maverik {
                  * @return std::vector<std::string> A vector of strings representing the backtrace, with each string containing information about a specific frame following the format: "./path/to/binary() [function address in binary]".
                  */
                 static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
-                    #if defined(__linux__)
-                    int skipFrameBeforeMain = 3;
-                    #elif defined(__APPLE__)
-                    int skipFrameBeforeMain = 1;
-                    #endif
                     void **array = static_cast<void**>(malloc(sizeof(void *) * size));
                     if (!array) {
                         throw std::runtime_error("Failed to allocate memory for backtrace array");
@@ -94,7 +89,7 @@ namespace maverik {
                     for (size_t i = skip; i < count; ++i) {
                         result.push_back(strings[i]);
                     }
-                    for (int i = 0; i < skipFrameBeforeMain; i++) {
+                    for (int i = 0; i < 3; i++) {
                         result.pop_back();
                     }
 
