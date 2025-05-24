@@ -16,15 +16,33 @@ namespace maverik {
     namespace vk {
         class SwapchainContext : public ASwapchainContext {
             public:
+                struct SwapchainContextCreationProperties {
+                    VkSurfaceKHR _surface;
+                    VkPhysicalDevice _physicalDevice;
+                    VkDevice _logicalDevice;
+                    GLFWwindow *_window;
+                    VkSampleCountFlagBits _msaaSamples;
+                    VkCommandPool _commandPool;
+                    VkQueue _graphicsQueue;
+                };
+
+                struct TextureImageCreationProperties {
+                    VkPhysicalDevice _physicalDevice;
+                    VkDevice _logicalDevice;
+                    VkCommandPool _commandPool;
+                    VkSampleCountFlagBits _msaaSamples;
+                    VkQueue _graphicsQueue;
+                };
+
                 // Contructors
-                SwapchainContext(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue);
+                SwapchainContext(const SwapchainContextCreationProperties& properties);
 
                 // Destructor
                 ~SwapchainContext();
 
-                void recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue);
+                void recreate(const SwapchainContextCreationProperties& properties);
 
-                void createTextureImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, const std::string& texturePath);
+                void createTextureImage(const std::string& texturePath, const TextureImageCreationProperties& properties);
 
             protected:
                 // In addition to the base swapchain
@@ -67,7 +85,7 @@ namespace maverik {
                 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow *window);
 
                 void createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples);
-                void createDepthResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkSampleCountFlagBits msaaSamples);
+                void createDepthResources(const TextureImageCreationProperties& properties);
 
                 VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
 
