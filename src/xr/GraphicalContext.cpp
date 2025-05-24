@@ -11,6 +11,7 @@ maverik::xr::GraphicalContext::GraphicalContext(XrInstance instance, XrSystemId 
     : _XRinstance(instance), _XRsystemID(systemID)
 {
     _renderingContext = nullptr;
+    _swapchainContext = nullptr;
 }
 
 maverik::xr::GraphicalContext::~GraphicalContext()

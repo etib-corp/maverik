@@ -32,4 +32,5 @@ void maverik::xr::SwapchainContext::init()
     std::vector<int64_t> swapchainFormats(swapchainFormatCount);
     xrEnumerateSwapchainFormats(_session, swapchainFormatCount, &swapchainFormatCount, swapchainFormats.data());
 
+    uint32_t viewCount = 0;
 }

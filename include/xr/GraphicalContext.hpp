@@ -7,9 +7,10 @@
 
 #pragma once
 
-#include "xr/Openxr-include.hpp"
 #include "AGraphicalContext.hpp"
+#include "xr/Openxr-include.hpp"
 #include "xr/RenderingContext.hpp"
+#include "xr/SwapchainContext.hpp"
 
 namespace maverik {
     namespace xr {
