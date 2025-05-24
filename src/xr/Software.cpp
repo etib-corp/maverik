@@ -80,4 +80,8 @@ void maverik::xr::Software::createInstance()
         std::cerr << "Failed to create XR session" << std::endl;
         return;
     }
+
+    std::shared_ptr<maverik::xr::SwapchainContext> swapchainContext = std::make_shared<maverik::xr::SwapchainContext>(_XRinstance, _XRsystemID, _XRsession);
+    swapchainContext->init();
+    _graphicalContext->setSwapchainContext(swapchainContext);
 }
