@@ -30,14 +30,22 @@
  * @param graphicsQueue The Vulkan graphics queue used for rendering commands.
  * @param renderPass The Vulkan render pass used for rendering operations.
  */
-maverik::vk::SwapchainContext::SwapchainContext(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue)
+maverik::vk::SwapchainContext::SwapchainContext(const SwapchainContextCreationProperties& properties)
 {
-    this->init(surface, physicalDevice, logicalDevice, window);
+    struct TextureImageCreationProperties textureImageProperties = {
+        properties._physicalDevice,
+        properties._logicalDevice,
+        properties._commandPool,
+        properties._msaaSamples,
+        properties._graphicsQueue
+    };
 
-    this->createColorResources(logicalDevice, physicalDevice, msaaSamples);
-    this->createDepthResources(logicalDevice, physicalDevice, commandPool, graphicsQueue, msaaSamples);
-    this->createFramebuffers(logicalDevice);
-    this->createRenderPass(physicalDevice, logicalDevice, msaaSamples);
+    this->init(properties._surface, properties._physicalDevice, properties._logicalDevice, properties._window);
+
+    this->createColorResources(properties._logicalDevice, properties._physicalDevice, properties._msaaSamples);
+    this->createDepthResources(textureImageProperties);
+    this->createFramebuffers(properties._logicalDevice);
+    this->createRenderPass(properties._physicalDevice, properties._logicalDevice, properties._msaaSamples);
 }
 
 /**
@@ -65,24 +73,31 @@ maverik::vk::SwapchainContext::~SwapchainContext()
  * @param graphicsQueue The Vulkan graphics queue used for rendering operations.
  * @param renderPass The Vulkan render pass used for rendering.
  */
-void maverik::vk::SwapchainContext::recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue)
+void maverik::vk::SwapchainContext::recreate(const SwapchainContextCreationProperties& properties)
 {
     int width = 0;
     int height = 0;
+    struct TextureImageCreationProperties textureImageProperties = {
+        properties._physicalDevice,
+        properties._logicalDevice,
+        properties._commandPool,
+        properties._msaaSamples,
+        properties._graphicsQueue
+    };
 
     while (width == 0 || height == 0) {
-        glfwGetFramebufferSize(window, &width, &height);
+        glfwGetFramebufferSize(properties._window, &width, &height);
         glfwWaitEvents();
     }
-    vkDeviceWaitIdle(logicalDevice);
+    vkDeviceWaitIdle(properties._logicalDevice);
 
-    this->cleanup(logicalDevice);
+    this->cleanup(properties._logicalDevice);
 
-    this->init(surface, physicalDevice, logicalDevice, window);
+    this->init(properties._surface, properties._physicalDevice, properties._logicalDevice, properties._window);
 
-    this->createColorResources(logicalDevice, physicalDevice, msaaSamples);
-    this->createDepthResources(logicalDevice, physicalDevice, commandPool, graphicsQueue, msaaSamples);
-    this->createFramebuffers(logicalDevice);
+    this->createColorResources(properties._logicalDevice, properties._physicalDevice, properties._msaaSamples);
+    this->createDepthResources(textureImageProperties);
+    this->createFramebuffers(properties._logicalDevice);
 }
 
 ///////////////////////
@@ -384,7 +399,7 @@ void maverik::vk::SwapchainContext::createRenderPass(VkPhysicalDevice physicalDe
  * @note The function creates a staging buffer for image data transfer, allocates and fills
  *       device-local image memory, generates mipmaps, and cleans up temporary resources.
  */
-void maverik::vk::SwapchainContext::createTextureImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, const std::string& texturePath)
+void maverik::vk::SwapchainContext::createTextureImage(const std::string& texturePath, const TextureImageCreationProperties& properties)
 {
     int texWidth = 0;
     int texHeight = 0;
@@ -399,23 +414,23 @@ void maverik::vk::SwapchainContext::createTextureImage(VkPhysicalDevice physical
     }
 
     _mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
-    Utils::createBuffer(logicalDevice, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    Utils::createBuffer(properties._logicalDevice, properties._physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(properties._logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
         memcpy(data, pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(logicalDevice, stagingBufferMemory);
+    vkUnmapMemory(properties._logicalDevice, stagingBufferMemory);
 
     stbi_image_free(pixels);
 
-    Utils::createImage(logicalDevice, physicalDevice, texWidth, texHeight, _mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _textureImage, _textureImageMemory);
+    Utils::createImage(properties._logicalDevice, properties._physicalDevice, texWidth, texHeight, _mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _textureImage, _textureImageMemory);
 
-    Utils::transitionImageLayout(logicalDevice, commandPool, graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _mipLevels);
-    Utils::copyBufferToImage(logicalDevice, commandPool, graphicsQueue, stagingBuffer, _textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-    Utils::generateMipmaps(physicalDevice, logicalDevice, commandPool, graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, _mipLevels);
+    Utils::transitionImageLayout(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _mipLevels);
+    Utils::copyBufferToImage(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, stagingBuffer, _textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    Utils::generateMipmaps(properties._physicalDevice, properties._logicalDevice, properties._commandPool, properties._graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, _mipLevels);
 
-    vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
-    vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(properties._logicalDevice, stagingBuffer, nullptr);
+    vkFreeMemory(properties._logicalDevice, stagingBufferMemory, nullptr);
 }
 
 /**
@@ -596,11 +611,11 @@ void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice,
  * @param graphicsQueue The graphics queue used to execute the image layout transition commands.
  * @param msaaSamples The number of samples per pixel for multisampling (MSAA).
  */
-void maverik::vk::SwapchainContext::createDepthResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkSampleCountFlagBits msaaSamples)
+void maverik::vk::SwapchainContext::createDepthResources(const TextureImageCreationProperties& properties)
 {
-    VkFormat depthFormat = Utils::findDepthFormat(physicalDevice);
+    VkFormat depthFormat = Utils::findDepthFormat(properties._physicalDevice);
 
-    Utils::createImage(logicalDevice, physicalDevice, _swapchainExtent.width, _swapchainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImage, _depthImageMemory);
-    _depthImageView = this->createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, logicalDevice);
-    Utils::transitionImageLayout(logicalDevice, commandPool, graphicsQueue, _depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+    Utils::createImage(properties._logicalDevice, properties._physicalDevice, _swapchainExtent.width, _swapchainExtent.height, 1, properties._msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImage, _depthImageMemory);
+    _depthImageView = this->createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, properties._logicalDevice);
+    Utils::transitionImageLayout(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, _depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
