@@ -52,7 +52,7 @@ namespace maverik {
              * This method should be used when the file can't be opened by the AssetManager itself.
              * In this case, the content, obtained in some way, is passed as a parameter.
              */
-            std::shared_ptr<maverik::FileAsset> addAsset(const std::string &path, const std::ustring& content);
+            std::shared_ptr<maverik::FileAsset> addAsset(const std::string &path, const std::string& content);
 
             /**
              * @brief Removes an asset from the manager.
@@ -83,6 +83,6 @@ namespace maverik {
             std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path);
 
         protected:
-            std::map<std::string, std::ustring> _assets;     ///> The map of assets, where the key is the path and the value is the content
+            std::map<std::string, std::string> _assets;     ///> The map of assets, where the key is the path and the value is the content
     };
 } // namespace maverik

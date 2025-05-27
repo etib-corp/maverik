@@ -7,7 +7,7 @@
 
 #include "AAssetManager.hpp"
 
-std::shared_ptr<maverik::FileAsset> maverik::AAssetManager::addAsset(const std::string &path, const std::ustring& content)
+std::shared_ptr<maverik::FileAsset> maverik::AAssetManager::addAsset(const std::string &path, const std::string& content)
 {
     _assets[path] = content;
     return std::make_shared<maverik::FileAsset>(_assets[path]);

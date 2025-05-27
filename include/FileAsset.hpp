@@ -12,24 +12,6 @@
 #include <cstring>
 #include <fstream>
 
-namespace std {
-    /**
-     * @brief A specialization of std::basic_string for unsigned char.
-     *
-     * This specialization is used to handle binary data in a more convenient way.
-     * It allows for the use of string-like operations on unsigned char data.
-     */
-    using ustring = std::basic_string<unsigned char>;
-
-    /**
-     * @brief A specialization of std::basic_ifstream for unsigned char.
-     *
-     * This specialization is used to read binary data from files.
-     * It allows for the use of file stream operations on unsigned char data.
-     */
-    using uifstream = std::basic_ifstream<unsigned char>;
-}
-
 /**
  * @namespace maverik
  * @brief The maverik namespace contains classes and functions for the maverik project.
@@ -58,7 +40,7 @@ namespace maverik {
              * @brief Constructs a FileAsset object with its content and size.
              * @param content The content of the file.
              */
-            FileAsset(std::ustring& content);
+            FileAsset(std::string& content);
 
             /**
              * @brief Destructs the FileAsset object.
@@ -98,7 +80,7 @@ namespace maverik {
             size_t tell();
 
         protected:
-            std::ustring &_content;      ///> The content of the file
+            std::string &_content;      ///> The content of the file
             size_t _pos;                ///> The current position in the file
     };
 }

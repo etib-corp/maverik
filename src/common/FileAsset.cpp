@@ -7,7 +7,7 @@
 
 #include "FileAsset.hpp"
 
-maverik::FileAsset::FileAsset(std::ustring& content)
+maverik::FileAsset::FileAsset(std::string& content)
     : _content(content)
 {
 }
@@ -20,7 +20,7 @@ size_t maverik::FileAsset::write(const void *ptr, size_t size, size_t nmemb)
 {
     // TODO: write to file
     size_t _lenBefore = _content.size();
-    _content.append(static_cast<const unsigned char *>(ptr), size * nmemb);
+    _content.append(static_cast<const char *>(ptr), size * nmemb);
     size_t _lenAfter = _content.size();
     return (_lenAfter - _lenBefore) / size;
 }
