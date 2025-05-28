@@ -14,7 +14,7 @@ std::shared_ptr<maverik::FileAsset> maverik::vk::AssetsManager::addAsset(const s
     }
     std::ifstream file(path, std::ios::binary);
 
-    if (!file || !file.is_open()) {
+    if (!file.is_open()) {
         std::cerr << "Failed to open file: " << path << std::endl;
         return nullptr;
     }
