@@ -66,6 +66,15 @@ namespace maverik {
             size_t read(void *ptr, size_t size, size_t count);
 
             /**
+             * @brief Reads data from the file.
+             * @param str The string to read data into.
+             * @param size The size of each element to read.
+             * @param count The number of elements to read.
+             * @return The number of elements read.
+             */
+            size_t read(std::string& str, size_t size, size_t count);
+
+            /**
              * @brief Seeks to a specific position in the file.
              * @param offset The offset to seek to.
              * @param whence The seek mode (SET, CUR, END).

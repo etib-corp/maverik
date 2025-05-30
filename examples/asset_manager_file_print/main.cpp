@@ -11,9 +11,12 @@ int main(int ac, char **av)
     auto file = assetsManager.addAsset(av[1]);
     if (file) {
         std::string content;
-        content.resize(100);
-        file->read(&content[0], 1, 100);
-        std::cout << "File content: " << content << std::endl;
+        file->seek(0, maverik::FileAsset::Seek::END);
+        int fileSize = file->tell();
+        file->seek(0, maverik::FileAsset::Seek::SET);
+        content.resize(fileSize);
+        file->read(&content[0], 1, fileSize);
+        std::cout << content << std::endl;
     } else {
         std::cerr << "Failed to load asset." << std::endl;
     }

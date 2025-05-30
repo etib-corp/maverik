@@ -35,6 +35,11 @@ size_t maverik::FileAsset::read(void *ptr, size_t size, size_t count)
     return toRead / size;
 }
 
+size_t maverik::FileAsset::read(std::string& str, size_t size, size_t count)
+{
+    return this->read(&str[0], size, count);
+}
+
 int maverik::FileAsset::seek(long offset, Seek whence)
 {
     switch (whence)
