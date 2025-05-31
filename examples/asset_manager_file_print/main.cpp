@@ -20,5 +20,12 @@ int main(int ac, char **av)
     } else {
         std::cerr << "Failed to load asset." << std::endl;
     }
+    assetsManager.removeAsset(av[1]);
+    if (assetsManager.assetExists(av[1])) {
+        std::cerr << "Asset still exists after removal." << std::endl;
+    } else {
+        std::cout << "Asset successfully removed." << std::endl;
+    }
+    std::cout << "End of program." << std::endl;
     return 0;
 }

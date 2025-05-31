@@ -1,6 +1,6 @@
 /*
 ** ETIB PROJECT, 2025
-** Visual Studio Live Share (Workspace)
+** maverik
 ** File description:
 ** AAssetManager
 */
@@ -9,13 +9,8 @@
 
 std::shared_ptr<maverik::FileAsset> maverik::AAssetManager::addAsset(const std::string &path, const std::string& content)
 {
-    _assets[path] = content;
-    return std::make_shared<maverik::FileAsset>(_assets[path]);
-}
-
-void maverik::AAssetManager::removeAsset(const std::string &path)
-{
-    _assets.erase(path);
+    _assets[path] = std::make_shared<maverik::FileAsset>(content);
+    return _assets[path];
 }
 
 bool maverik::AAssetManager::assetExists(const std::string &path) const
@@ -26,7 +21,7 @@ bool maverik::AAssetManager::assetExists(const std::string &path) const
 std::shared_ptr<maverik::FileAsset> maverik::AAssetManager::getAsset(const std::string &path)
 {
     if (assetExists(path)) {
-        return std::make_shared<maverik::FileAsset>(_assets[path]);
+        return _assets[path];
     }
     return nullptr;
 }

@@ -61,7 +61,7 @@ namespace maverik {
              * This method removes the asset from the _assets map.
              * Using a deleted asset will result in undefined behavior.
              */
-            void removeAsset(const std::string &path);
+            virtual void removeAsset(const std::string &path) = 0;
 
             /**
              * @brief Checks if an asset exists in the manager.
@@ -83,6 +83,6 @@ namespace maverik {
             std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path);
 
         protected:
-            std::map<std::string, std::string> _assets;     ///> The map of assets, where the key is the path and the value is the content
+            std::map<std::string, std::shared_ptr<maverik::FileAsset>> _assets;     ///> The map of assets, where the key is the path and the value is a shared pointer to the FileAsset object.
     };
 } // namespace maverik

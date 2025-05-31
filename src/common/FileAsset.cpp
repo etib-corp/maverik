@@ -7,7 +7,7 @@
 
 #include "FileAsset.hpp"
 
-maverik::FileAsset::FileAsset(std::string& content)
+maverik::FileAsset::FileAsset(const std::string& content)
     : _content(content)
 {
 }

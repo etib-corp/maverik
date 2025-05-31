@@ -46,6 +46,15 @@ namespace maverik {
                  *         it returns a nullptr and logs an error message.
                  */
                 std::shared_ptr<maverik::FileAsset> addAsset(const std::string &path) override;
+
+                /**
+                 * @brief Removes an asset from the manager.
+                 * @param path The path to the asset.
+                 *
+                 * This method removes the asset from the _assets map.
+                 * Using a deleted asset will result in undefined behavior.
+                 */
+                void removeAsset(const std::string &path) override;
         };
     }
 }

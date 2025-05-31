@@ -40,7 +40,7 @@ namespace maverik {
              * @brief Constructs a FileAsset object with its content and size.
              * @param content The content of the file.
              */
-            FileAsset(std::string& content);
+            FileAsset(const std::string& content);
 
             /**
              * @brief Destructs the FileAsset object.
@@ -89,7 +89,7 @@ namespace maverik {
             size_t tell();
 
         protected:
-            std::string &_content;      ///> The content of the file
+            std::string _content;      ///> The content of the file
             size_t _pos;                ///> The current position in the file
     };
 }
