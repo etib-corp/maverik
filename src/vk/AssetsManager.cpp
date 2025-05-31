@@ -7,9 +7,9 @@
 
 #include "AssetsManager.hpp"
 
-std::shared_ptr<maverik::FileAsset> maverik::vk::AssetsManager::addAsset(const std::string &path)
+std::shared_ptr<maverik::FileAsset> maverik::vk::AssetsManager::add(const std::string &path)
 {
-    if (this->assetExists(path)) {
+    if (this->exists(path)) {
         return _assets[path];
     }
     std::ifstream file(path, std::ios::binary);
@@ -32,12 +32,12 @@ std::shared_ptr<maverik::FileAsset> maverik::vk::AssetsManager::addAsset(const s
     return _assets[path];
 }
 
-void maverik::vk::AssetsManager::removeAsset(const std::string &path, bool save)
+void maverik::vk::AssetsManager::remove(const std::string &path, bool save)
 {
     auto it = _assets.find(path);
     if (it != _assets.end()) {
         if (save) {
-            this->saveAsset(path);
+            this->save(path);
         }
         _assets.erase(it);
     } else {
@@ -45,7 +45,7 @@ void maverik::vk::AssetsManager::removeAsset(const std::string &path, bool save)
     }
 }
 
-bool maverik::vk::AssetsManager::saveAsset(const std::string &path, const std::string& newPath)
+bool maverik::vk::AssetsManager::save(const std::string &path, const std::string& newPath)
 {
     auto it = _assets.find(path);
     if (it == _assets.end()) {

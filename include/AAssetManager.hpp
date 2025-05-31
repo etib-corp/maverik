@@ -39,20 +39,7 @@ namespace maverik {
              * This method is responsible for loading the asset from the specified path
              * by reading the file content and storing it in the _assets map.
              */
-            virtual std::shared_ptr<maverik::FileAsset> addAsset(const std::string &path) = 0;
-
-            /**
-             * @brief Adds an asset to the manager with the specified content.
-             * @param path The path to the asset.
-             * @param content The content of the asset.
-             * @return A shared pointer to the FileAsset object.
-             *
-             * This method is responsible for creating a new FileAsset object with the
-             * specified content and storing it in the _assets map.
-             * This method should be used when the file can't be opened by the AssetManager itself.
-             * In this case, the content, obtained in some way, is passed as a parameter.
-             */
-            std::shared_ptr<maverik::FileAsset> addAsset(const std::string &path, const std::string& content);
+            virtual std::shared_ptr<maverik::FileAsset> add(const std::string &path) = 0;
 
             /**
              * @brief Removes an asset from the manager.
@@ -65,7 +52,7 @@ namespace maverik {
              * If save is false, the asset will be removed from the _assets map without saving its content on the disk.
              * Using a deleted asset will result in undefined behavior.
              */
-            virtual void removeAsset(const std::string &path, bool save = true) = 0;
+            virtual void remove(const std::string &path, bool save = true) = 0;
 
             /**
              * @brief Saves an asset to the disk.
@@ -78,7 +65,7 @@ namespace maverik {
              * If newPath is provided, it will save the asset to that path and will not update the original path.
              * If newPath is not provided, it will save the asset to the original path.
              */
-            virtual bool saveAsset(const std::string &path, const std::string& newPath = "") = 0;
+            virtual bool save(const std::string &path, const std::string& newPath = "") = 0;
 
             /**
              * @brief Checks if an asset exists in the manager.
@@ -87,7 +74,7 @@ namespace maverik {
              *
              * This method checks if the asset is present in the _assets map.
              */
-            bool assetExists(const std::string &path) const;
+            bool exists(const std::string &path) const;
 
             /**
              * @brief Gets an asset from the manager.
@@ -97,7 +84,7 @@ namespace maverik {
              * This method retrieves the asset from the _assets map.
              * If the asset does not exist, it returns a nullptr.
              */
-            std::shared_ptr<maverik::FileAsset> getAsset(const std::string &path);
+            std::shared_ptr<maverik::FileAsset> get(const std::string &path);
 
         protected:
             std::map<std::string, std::shared_ptr<maverik::FileAsset>> _assets;     ///> The map of assets, where the key is the path and the value is a shared pointer to the FileAsset object.
