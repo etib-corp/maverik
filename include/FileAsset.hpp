@@ -12,24 +12,6 @@
 #include <cstring>
 #include <fstream>
 
-namespace std {
-    /**
-     * @brief A specialization of std::basic_string for unsigned char.
-     *
-     * This specialization is used to handle binary data in a more convenient way.
-     * It allows for the use of string-like operations on unsigned char data.
-     */
-    using ustring = std::basic_string<unsigned char>;
-
-    /**
-     * @brief A specialization of std::basic_ifstream for unsigned char.
-     *
-     * This specialization is used to read binary data from files.
-     * It allows for the use of file stream operations on unsigned char data.
-     */
-    using uifstream = std::basic_ifstream<unsigned char>;
-}
-
 /**
  * @namespace maverik
  * @brief The maverik namespace contains classes and functions for the maverik project.
@@ -58,7 +40,7 @@ namespace maverik {
              * @brief Constructs a FileAsset object with its content and size.
              * @param content The content of the file.
              */
-            FileAsset(std::ustring& content);
+            FileAsset(const std::string& content);
 
             /**
              * @brief Destructs the FileAsset object.
@@ -71,6 +53,8 @@ namespace maverik {
              * @param size The size of each element to write.
              * @param nmemb The number of elements to write.
              * @return The number of elements written.
+             *
+             * This method appends data at the seek position in the file.
              */
             size_t write(const void *ptr, size_t size, size_t nmemb);
 
@@ -82,6 +66,15 @@ namespace maverik {
              * @return The number of elements read.
              */
             size_t read(void *ptr, size_t size, size_t count);
+
+            /**
+             * @brief Reads data from the file.
+             * @param str The string to read data into.
+             * @param size The size of each element to read.
+             * @param count The number of elements to read.
+             * @return The number of elements read.
+             */
+            size_t read(std::string& str, size_t size, size_t count);
 
             /**
              * @brief Seeks to a specific position in the file.
@@ -97,8 +90,12 @@ namespace maverik {
              */
             size_t tell();
 
+            [[__nodiscard__]] inline const std::string& content() const {
+                return _content;
+            }
+
         protected:
-            std::ustring &_content;      ///> The content of the file
+            std::string _content;      ///> The content of the file
             size_t _pos;                ///> The current position in the file
     };
 }
