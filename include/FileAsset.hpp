@@ -53,6 +53,8 @@ namespace maverik {
              * @param size The size of each element to write.
              * @param nmemb The number of elements to write.
              * @return The number of elements written.
+             *
+             * This method appends data at the seek position in the file.
              */
             size_t write(const void *ptr, size_t size, size_t nmemb);
 
@@ -87,6 +89,10 @@ namespace maverik {
              * @return The current position in the file.
              */
             size_t tell();
+
+            [[__nodiscard__]] inline const std::string& content() const {
+                return _content;
+            }
 
         protected:
             std::string _content;      ///> The content of the file

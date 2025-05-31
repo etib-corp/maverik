@@ -17,9 +17,12 @@ int main(int ac, char **av)
         content.resize(fileSize);
         file->read(&content[0], 1, fileSize);
         std::cout << content << std::endl;
+        file->seek(0, maverik::FileAsset::Seek::END);
+        file->write("Hello World!", 1, 12);
     } else {
         std::cerr << "Failed to load asset." << std::endl;
     }
+
     assetsManager.removeAsset(av[1]);
     if (assetsManager.assetExists(av[1])) {
         std::cerr << "Asset still exists after removal." << std::endl;

@@ -32,12 +32,33 @@ std::shared_ptr<maverik::FileAsset> maverik::vk::AssetsManager::addAsset(const s
     return _assets[path];
 }
 
-void maverik::vk::AssetsManager::removeAsset(const std::string &path)
+void maverik::vk::AssetsManager::removeAsset(const std::string &path, bool save)
 {
     auto it = _assets.find(path);
     if (it != _assets.end()) {
+        if (save) {
+            this->saveAsset(path);
+        }
         _assets.erase(it);
     } else {
         std::cerr << "Asset not found: " << path << std::endl;
     }
+}
+
+bool maverik::vk::AssetsManager::saveAsset(const std::string &path, const std::string& newPath)
+{
+    auto it = _assets.find(path);
+    if (it == _assets.end()) {
+        std::cerr << "Asset not found: " << path << std::endl;
+        return false;
+    }
+    std::string savePath = newPath.empty() ? path : newPath;
+    std::ofstream file(savePath, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file for saving: " << savePath << std::endl;
+        return false;
+    }
+    file.write(it->second->content().data(), it->second->content().size());
+    file.close();
+    return true;
 }

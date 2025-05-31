@@ -18,11 +18,14 @@ maverik::FileAsset::~FileAsset()
 
 size_t maverik::FileAsset::write(const void *ptr, size_t size, size_t nmemb)
 {
-    // TODO: write to file
-    size_t _lenBefore = _content.size();
-    _content.append(static_cast<const char *>(ptr), size * nmemb);
-    size_t _lenAfter = _content.size();
-    return (_lenAfter - _lenBefore) / size;
+    size_t lenBefore = _content.size();
+    size_t newLen = lenBefore + size * nmemb;
+    if (newLen > _content.capacity()) {
+        _content.reserve(newLen);
+    }
+    _content.insert(_pos, static_cast<const char*>(ptr), size * nmemb);
+    _pos += size * nmemb;
+    return (_content.size() - lenBefore) / size;
 }
 
 size_t maverik::FileAsset::read(void *ptr, size_t size, size_t count)

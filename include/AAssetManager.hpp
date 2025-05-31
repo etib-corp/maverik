@@ -57,11 +57,28 @@ namespace maverik {
             /**
              * @brief Removes an asset from the manager.
              * @param path The path to the asset.
+             * @param save Whether to save the asset before removing it (default is true).
              *
              * This method removes the asset from the _assets map.
+             * When removing an asset, the asset file will not be deleted from the disk.
+             * When removing an asset, its content is updated on the disk if save is true.
+             * If save is false, the asset will be removed from the _assets map without saving its content on the disk.
              * Using a deleted asset will result in undefined behavior.
              */
-            virtual void removeAsset(const std::string &path) = 0;
+            virtual void removeAsset(const std::string &path, bool save = true) = 0;
+
+            /**
+             * @brief Saves an asset to the disk.
+             * @param path The path to the asset.
+             * @param newPath The new path to save the asset to (optional).
+             * @return True if the asset was saved successfully, false otherwise.
+             *
+             * This method is pure virtual and must be implemented by derived classes.
+             * It is responsible for saving the content of the asset to the specified path.
+             * If newPath is provided, it will save the asset to that path and will not update the original path.
+             * If newPath is not provided, it will save the asset to the original path.
+             */
+            virtual bool saveAsset(const std::string &path, const std::string& newPath = "") = 0;
 
             /**
              * @brief Checks if an asset exists in the manager.
