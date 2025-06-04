@@ -320,11 +320,11 @@ namespace maverik {
                     /*
                      * @brief The width of the image in pixels.
                     */
-                    int32_t _texWidth;
+                    uint32_t _texWidth;
                     /*
                      * @brief The height of the image in pixels.
                     */
-                    int32_t _texHeight;
+                    uint32_t _texHeight;
                     /*
                      * @brief The number of mipmap levels to generate.
                     */

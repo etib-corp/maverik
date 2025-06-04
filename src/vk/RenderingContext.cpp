@@ -460,15 +460,41 @@ void maverik::vk::RenderingContext::createVertexBuffer()
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    Utils::createBuffer(_logicalDevice, _physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    Utils::CreateBufferProperties stagingBufferProperties = {
+        ._logicalDevice = _logicalDevice,
+        ._physicalDevice = _physicalDevice,
+        ._size = bufferSize,
+        ._usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        ._buffer = stagingBuffer,
+        ._bufferMemory = stagingBufferMemory
+    };
+
+    Utils::createBuffer(stagingBufferProperties);
 
     void* data;
     vkMapMemory(_logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, _vertices.data(), (size_t) bufferSize);
     vkUnmapMemory(_logicalDevice, stagingBufferMemory);
 
-    Utils::createBuffer(_logicalDevice, _physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _vertexBuffer, _vertexBufferMemory);
-    Utils::copyBuffer(_logicalDevice, _commandPool, _graphicsQueue, stagingBuffer, _vertexBuffer, bufferSize);
+    Utils::CreateBufferProperties vertexBufferProperties = {
+        ._logicalDevice = _logicalDevice,
+        ._physicalDevice = _physicalDevice,
+        ._size = bufferSize,
+        ._usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        ._buffer = _vertexBuffer,
+        ._bufferMemory = _vertexBufferMemory
+    };
+    Utils::createBuffer(vertexBufferProperties);
+
+    Utils::CopyBufferProperties copyBufferProperties = {
+        ._logicalDevice = _logicalDevice,
+        ._commandPool = _commandPool,
+        ._graphicsQueue = _graphicsQueue,
+        ._srcBuffer = stagingBuffer,
+        ._dstBuffer = _vertexBuffer,
+        ._size = bufferSize
+    };
+    Utils::copyBuffer(copyBufferProperties);
 
     vkDestroyBuffer(_logicalDevice, stagingBuffer, nullptr);
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
@@ -499,16 +525,41 @@ void maverik::vk::RenderingContext::createIndexBuffer()
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    Utils::createBuffer(_logicalDevice, _physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    Utils::CreateBufferProperties stagingBufferProperties = {
+        ._logicalDevice = _logicalDevice,
+        ._physicalDevice = _physicalDevice,
+        ._size = bufferSize,
+        ._usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        ._buffer = stagingBuffer,
+        ._bufferMemory = stagingBufferMemory
+    };
+
+    Utils::createBuffer(stagingBufferProperties);
 
     void* data;
     vkMapMemory(_logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, _indices.data(), (size_t) bufferSize);
     vkUnmapMemory(_logicalDevice, stagingBufferMemory);
 
-    Utils::createBuffer(_logicalDevice, _physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _indexBuffer, _indexBufferMemory);
+    Utils::CreateBufferProperties indexBufferProperties = {
+        ._logicalDevice = _logicalDevice,
+        ._physicalDevice = _physicalDevice,
+        ._size = bufferSize,
+        ._usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        ._buffer = _indexBuffer,
+        ._bufferMemory = _indexBufferMemory
+    };
+    Utils::createBuffer(indexBufferProperties);
 
-    Utils::copyBuffer(_logicalDevice, _commandPool, _graphicsQueue, stagingBuffer, _indexBuffer, bufferSize);
+    Utils::CopyBufferProperties copyBufferProperties = {
+        ._logicalDevice = _logicalDevice,
+        ._commandPool = _commandPool,
+        ._graphicsQueue = _graphicsQueue,
+        ._srcBuffer = stagingBuffer,
+        ._dstBuffer = _indexBuffer,
+        ._size = bufferSize
+    };
+    Utils::copyBuffer(copyBufferProperties);
 
     vkDestroyBuffer(_logicalDevice, stagingBuffer, nullptr);
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
@@ -541,8 +592,16 @@ void maverik::vk::RenderingContext::createUniformBuffers()
     _uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        Utils::createBuffer(_logicalDevice, _physicalDevice, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
+        Utils::CreateBufferProperties bufferProperties = {
+            ._logicalDevice = _logicalDevice,
+            ._physicalDevice = _physicalDevice,
+            ._size = bufferSize,
+            ._usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            ._buffer = _uniformBuffers[i],
+            ._bufferMemory = _uniformBuffersMemory[i]
+        };
 
+        Utils::createBuffer(bufferProperties);
         vkMapMemory(_logicalDevice, _uniformBuffersMemory[i], 0, bufferSize, 0, &_uniformBuffersMapped[i]);
     }
 }

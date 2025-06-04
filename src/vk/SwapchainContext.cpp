@@ -414,7 +414,17 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
     }
 
     _mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
-    Utils::createBuffer(properties._logicalDevice, properties._physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    Utils::CreateBufferProperties stagingBufferProperties = {
+        ._logicalDevice = properties._logicalDevice,
+        ._physicalDevice = properties._physicalDevice,
+        ._size = imageSize,
+        ._usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        ._buffer = stagingBuffer,
+        ._bufferMemory = stagingBufferMemory
+    };
+
+    Utils::createBuffer(stagingBufferProperties);
 
     void* data;
     vkMapMemory(properties._logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
@@ -423,11 +433,55 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
 
     stbi_image_free(pixels);
 
-    Utils::createImage(properties._logicalDevice, properties._physicalDevice, texWidth, texHeight, _mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _textureImage, _textureImageMemory);
+    Utils::CreateImageProperties imageProperties = {
+        ._logicalDevice = properties._logicalDevice,
+        ._physicalDevice = properties._physicalDevice,
+        ._width = (uint32_t)texWidth,
+        ._height = (uint32_t)texHeight,
+        ._mipLevels = _mipLevels,
+        ._format = VK_FORMAT_R8G8B8A8_SRGB,
+        ._tiling = VK_IMAGE_TILING_OPTIMAL,
+        ._usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        ._image = _textureImage,
+        ._imageMemory = _textureImageMemory
+    };
+    Utils::createImage(imageProperties);
 
-    Utils::transitionImageLayout(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _mipLevels);
-    Utils::copyBufferToImage(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, stagingBuffer, _textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-    Utils::generateMipmaps(properties._physicalDevice, properties._logicalDevice, properties._commandPool, properties._graphicsQueue, _textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, _mipLevels);
+    Utils::TransitionImageLayoutProperties transitionProperties = {
+        ._logicalDevice = properties._logicalDevice,
+        ._commandPool = properties._commandPool,
+        ._graphicsQueue = properties._graphicsQueue,
+        ._image = _textureImage,
+        ._format = VK_FORMAT_R8G8B8A8_SRGB,
+        ._oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        ._newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        ._mipLevels = _mipLevels
+    };
+    Utils::transitionImageLayout(transitionProperties);
+
+    Utils::CopyBufferToImageProperties copyProperties = {
+        ._logicalDevice = properties._logicalDevice,
+        ._commandPool = properties._commandPool,
+        ._graphicsQueue = properties._graphicsQueue,
+        ._buffer = stagingBuffer,
+        ._image = _textureImage,
+        ._width = (uint32_t)texWidth,
+        ._height = (uint32_t)texHeight
+    };
+    Utils::copyBufferToImage(copyProperties);
+
+    Utils::GenerateMipmapsProperties propertiesMipmap = {
+        ._physicalDevice = properties._physicalDevice,
+        ._logicalDevice = properties._logicalDevice,
+        ._commandPool = properties._commandPool,
+        ._graphicsQueue = properties._graphicsQueue,
+        ._image = _textureImage,
+        ._mipLevels = _mipLevels,
+        ._texWidth = (uint32_t)texWidth,
+        ._texHeight = (uint32_t)texHeight,
+        ._imageFormat = VK_FORMAT_R8G8B8A8_SRGB
+    };
+    Utils::generateMipmaps(propertiesMipmap);
 
     vkDestroyBuffer(properties._logicalDevice, stagingBuffer, nullptr);
     vkFreeMemory(properties._logicalDevice, stagingBufferMemory, nullptr);
@@ -593,8 +647,20 @@ VkExtent2D maverik::vk::SwapchainContext::chooseSwapExtent(const VkSurfaceCapabi
 void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples)
 {
     VkFormat colorFormat = _swapchainFormat;
+    Utils::CreateImageProperties imageProperties = {
+        ._logicalDevice = logicalDevice,
+        ._physicalDevice = physicalDevice,
+        ._width = _swapchainExtent.width,
+        ._height = _swapchainExtent.height,
+        ._mipLevels = 1, // No mipmaps for color attachment
+        ._format = colorFormat,
+        ._tiling = VK_IMAGE_TILING_OPTIMAL,
+        ._usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        ._image = _colorImage,
+        ._imageMemory = _colorImageMemory
+    };
 
-    Utils::createImage(logicalDevice, physicalDevice, _swapchainExtent.width, _swapchainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _colorImage, _colorImageMemory);
+    Utils::createImage(imageProperties);
     _colorImageView = this->createImageView(_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
 }
 
@@ -614,8 +680,31 @@ void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice,
 void maverik::vk::SwapchainContext::createDepthResources(const TextureImageCreationProperties& properties)
 {
     VkFormat depthFormat = Utils::findDepthFormat(properties._physicalDevice);
+    Utils::CreateImageProperties depthImageProperties = {
+        ._logicalDevice = properties._logicalDevice,
+        ._physicalDevice = properties._physicalDevice,
+        ._width = _swapchainExtent.width,
+        ._height = _swapchainExtent.height,
+        ._mipLevels = 1, // No mipmaps for depth attachment
+        ._format = depthFormat,
+        ._tiling = VK_IMAGE_TILING_OPTIMAL,
+        ._usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        ._image = _depthImage,
+        ._imageMemory = _depthImageMemory
+    };
 
-    Utils::createImage(properties._logicalDevice, properties._physicalDevice, _swapchainExtent.width, _swapchainExtent.height, 1, properties._msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImage, _depthImageMemory);
+    Utils::createImage(depthImageProperties);
     _depthImageView = this->createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, properties._logicalDevice);
-    Utils::transitionImageLayout(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, _depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+
+    Utils::TransitionImageLayoutProperties transitionProperties = {
+        ._logicalDevice = properties._logicalDevice,
+        ._commandPool = properties._commandPool,
+        ._graphicsQueue = properties._graphicsQueue,
+        ._image = _depthImage,
+        ._format = depthFormat,
+        ._oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        ._newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        ._mipLevels = 1 // No mipmaps for depth attachment
+    };
+    Utils::transitionImageLayout(transitionProperties);
 }
