@@ -16,15 +16,87 @@ namespace maverik {
     namespace vk {
         class SwapchainContext : public ASwapchainContext {
             public:
+                /**
+                 * @struct SwapchainContextCreationProperties
+                 * @brief Holds the properties required to create a Vulkan swapchain context.
+                 *
+                 * This structure encapsulates all the necessary Vulkan and GLFW objects
+                 * needed for initializing and managing a swapchain context, including
+                 * surface, devices, window, MSAA settings, command pool, and graphics queue.
+                 *
+                 */
+                struct SwapchainContextCreationProperties {
+                    /*
+                     * @brief The Vulkan surface to present images to.
+                    */
+                    VkSurfaceKHR _surface;
+                    /*
+                     * @brief The Vulkan physical device (GPU) to use.
+                    */
+                    VkPhysicalDevice _physicalDevice;
+                    /*
+                     * @brief The Vulkan logical device associated with the physical device.
+                    */
+                    VkDevice _logicalDevice;
+                    /*
+                     * @brief A pointer to the GLFW window associated with the swapchain.
+                    */
+                    GLFWwindow *_window;
+                    /*
+                     * @brief The number of samples for multisample anti-aliasing (MSAA).
+                     */
+                    VkSampleCountFlagBits _msaaSamples;
+                    /*
+                     * @brief The Vulkan command pool used for command buffer allocation.
+                     */
+                    VkCommandPool _commandPool;
+                    /*
+                     * @brief The Vulkan graphics queue used for rendering commands.
+                     */
+                    VkQueue _graphicsQueue;
+                };
+
+                /**
+                 * @struct TextureImageCreationProperties
+                 * @brief Holds Vulkan objects and properties required for texture image creation.
+                 *
+                 * This structure encapsulates the necessary Vulkan handles and settings
+                 * needed to create and manage texture images, including the physical and logical
+                 * devices, command pool, MSAA sample count, and graphics queue.
+                 *
+                 */
+                struct TextureImageCreationProperties {
+                    /*
+                     * @brief The Vulkan physical device used for resource creation.
+                    */
+                    VkPhysicalDevice _physicalDevice;
+                    /*
+                     * @brief The Vulkan logical device used for operations.
+                    */
+                    VkDevice _logicalDevice;
+                    /*
+                     * @brief The Vulkan command pool used for command buffer allocation.
+                    */
+                    VkCommandPool _commandPool;
+                    /*
+                     * @brief The number of samples for multisample anti-aliasing (MSAA).
+                     */
+                    VkSampleCountFlagBits _msaaSamples;
+                    /*
+                     * @brief The Vulkan graphics queue used for rendering operations.
+                     */
+                    VkQueue _graphicsQueue;
+                };
+
                 // Contructors
-                SwapchainContext(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue);
+                SwapchainContext(const SwapchainContextCreationProperties& properties);
 
                 // Destructor
                 ~SwapchainContext();
 
-                void recreate(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window, VkSampleCountFlagBits msaaSamples, VkCommandPool commandPool, VkQueue graphicsQueue);
+                void recreate(const SwapchainContextCreationProperties& properties);
 
-                void createTextureImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, const std::string& texturePath);
+                void createTextureImage(const std::string& texturePath, const TextureImageCreationProperties& properties);
 
             protected:
                 // In addition to the base swapchain
@@ -67,7 +139,7 @@ namespace maverik {
                 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow *window);
 
                 void createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples);
-                void createDepthResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkSampleCountFlagBits msaaSamples);
+                void createDepthResources(const TextureImageCreationProperties& properties);
 
                 VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
 

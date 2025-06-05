@@ -166,8 +166,56 @@ namespace maverik {
                     }
                 };
 
+                /**
+                 * @struct RenderingContextProperties
+                 * @brief Holds Vulkan rendering context properties required for rendering operations.
+                 *
+                 * This structure encapsulates the essential Vulkan objects needed to set up and manage
+                 * a rendering context, including the Vulkan instance, render pass, texture image view,
+                 * and texture sampler.
+                 *
+                 */
+                struct RenderingContextProperties {
+                    /*
+                     * @brief Vulkan instance associated with the rendering context.
+                     *
+                     * This member holds the Vulkan instance that is created and used for
+                     * rendering operations. It is essential for initializing Vulkan and
+                     * creating other Vulkan objects.
+                     *
+                    */
+                    VkInstance _instance;
+                    /*
+                     * @brief Vulkan render pass used for rendering operations.
+                     *
+                     * This member holds the Vulkan render pass that defines the
+                     * framebuffer attachments and their formats. It is used to manage
+                     * the rendering process and how the images are presented.
+                     *
+                    */
+                    VkRenderPass _renderPass;
+                    /*
+                     * @brief Image view representing the texture to be used in rendering.
+                     *
+                     * This member holds the image view that represents the texture image
+                     * used in rendering operations. It is essential for accessing the
+                     * texture data during rendering.
+                     *
+                    */
+                    VkImageView _textureImageView;
+                    /*
+                     * @brief Sampler used for sampling the texture image.
+                     *
+                     * This member holds the sampler that is used to sample the texture
+                     * image during rendering. It defines how the texture is sampled and
+                     * filtered.
+                     *
+                    */
+                    VkSampler _textureSampler;
+                };
+
                 // Constructors
-                RenderingContext(const WindowProperties &windowProperties, VkInstance instance, VkRenderPass renderPass, VkImageView textureImageView, VkSampler textureSampler);
+                RenderingContext(const WindowProperties &windowProperties, const RenderingContextProperties &renderingContextProperties);
 
                 // Destructor
                 ~RenderingContext();
