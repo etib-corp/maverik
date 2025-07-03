@@ -10,7 +10,7 @@
 
     #include "ASwapchainContext.hpp"
 
-    #include "vk/Utils.hpp"
+    #include "Utils.hpp"
 
 namespace maverik {
     namespace vk {

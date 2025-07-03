@@ -10,7 +10,7 @@
 
     #include "ARenderingContext.hpp"
 
-    #include "vk/Utils.hpp"
+    #include "Utils.hpp"
 
     /*
      * @brief Maximum number of frames in flight.

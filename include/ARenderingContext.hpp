@@ -50,6 +50,12 @@ namespace maverik {
 
             virtual void init() = 0;
 
+            virtual void pickPhysicalDevice(VkInstance instance) = 0;
+
+            virtual void createLogicalDevice() = 0;
+
+            virtual void createCommandPool() = 0;
+
             /**
              * @brief Retrieves the Vulkan context associated with this rendering context.
              *
