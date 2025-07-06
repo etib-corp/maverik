@@ -56,6 +56,8 @@ namespace maverik {
 
             virtual void createCommandPool() = 0;
 
+            virtual void createRenderPass() = 0;
+
             /**
              * @brief Retrieves the Vulkan context associated with this rendering context.
              *
