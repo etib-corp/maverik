@@ -87,7 +87,7 @@ void maverik::xr::GraphicalContext::createInstance()
     vkInstanceCreateInfo.vulkanAllocator = nullptr;
 
     VkResult result = VK_SUCCESS;
-    if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &_instance,&result) != XR_SUCCESS) {
+    if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &_instance, &result) != XR_SUCCESS) {
         std::cerr << "Failed to create Vulkan instance" << std::endl;
         return;
     }

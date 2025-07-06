@@ -7,10 +7,19 @@
 
 #include "xr/Software.hpp"
 
+
 maverik::xr::Software::Software(const std::shared_ptr<PlatformData> &platformData)
 {
     _platform = std::make_shared<AndroidPlatform>(platformData);
     _graphicalContext = nullptr;
+    createInstance();
+    initializeSystem();
+    _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(_XRinstance, _XRsystemID);
+    _graphicalContext->init();
+    initializeSession();
+    std::shared_ptr<maverik::xr::SwapchainContext> swapchainContext = std::make_shared<maverik::xr::SwapchainContext>(_XRinstance, _XRsystemID, _XRsession);
+    swapchainContext->init();
+    _graphicalContext->setSwapchainContext(swapchainContext);
 }
 
 maverik::xr::Software::~Software()
@@ -44,6 +53,13 @@ void maverik::xr::Software::createInstance()
         return;
     }
 
+}
+
+void maverik::xr::Software::initializeSystem()
+{
+    if (_XRsystemID != XR_NULL_SYSTEM_ID)
+        return;
+
     XrSystemGetInfo systemInfo{};
     systemInfo.type = XR_TYPE_SYSTEM_GET_INFO;
     systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
@@ -51,9 +67,12 @@ void maverik::xr::Software::createInstance()
         std::cerr << "Failed to get XR system ID" << std::endl;
         return;
     }
+}
 
-    _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(_XRinstance, _XRsystemID);
-    _graphicalContext->init();
+void maverik::xr::Software::initializeSession()
+{
+    if (_XRsession != XR_NULL_HANDLE)
+        return;
 
     std::shared_ptr<VulkanContext> vulkanContext = _graphicalContext->getVulkanContext();
     if (vulkanContext == nullptr) {
@@ -70,18 +89,13 @@ void maverik::xr::Software::createInstance()
     graphicsBinding.queueFamilyIndex = vulkanContext->graphicsQueueFamilyIndex;
     graphicsBinding.queueIndex = 0;
 
-    XrSessionCreateInfo sessionInfo{};
+    XrSessionCreateInfo sessionCreateInfo{};
+    sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
+    sessionCreateInfo.next = &graphicsBinding;
+    sessionCreateInfo.systemId = _XRsystemID;
 
-    sessionInfo.type = XR_TYPE_SESSION_CREATE_INFO;
-    sessionInfo.next = &graphicsBinding;
-    sessionInfo.systemId = _XRsystemID;
-
-    if (xrCreateSession(_XRinstance, &sessionInfo, &_XRsession) != XR_SUCCESS) {
+    if (xrCreateSession(_XRinstance, &sessionCreateInfo, &_XRsession) != XR_SUCCESS) {
         std::cerr << "Failed to create XR session" << std::endl;
         return;
     }
-
-    std::shared_ptr<maverik::xr::SwapchainContext> swapchainContext = std::make_shared<maverik::xr::SwapchainContext>(_XRinstance, _XRsystemID, _XRsession);
-    swapchainContext->init();
-    _graphicalContext->setSwapchainContext(swapchainContext);
 }

@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include "xr/Openxr-include.hpp"
 #include "ARenderingContext.hpp"
+#include "Utils.hpp"
+#include "xr/Openxr-include.hpp"
 
 namespace maverik {
     namespace xr {
@@ -50,11 +51,21 @@ namespace maverik {
                  */
                 void init() override;
 
+                void pickPhysicalDevice();
+
+                void createLogicalDevice();
+
+                void createGraphicsPipeline(VkRenderPass renderPass);
+
+                void createCommandPool();
+
             protected:
             private:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
                 VkInstance _vulkanInstance = VK_NULL_HANDLE;
+
+                VkPipelineLayout _pipelineLayout;
         };
     }
 }
