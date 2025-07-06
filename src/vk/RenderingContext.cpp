@@ -114,8 +114,8 @@ void maverik::vk::RenderingContext::initWindow(unsigned int width, unsigned int 
  * @brief Creates a Vulkan surface for rendering, specific to the platform.
  *
  * This function initializes a Vulkan surface (_surface) for the given Vulkan instance.
- * It handles platform-specific surface creation logic. On Windows, it uses the 
- * `vkCreateWin32SurfaceKHR` function, while on other platforms, it uses GLFW's 
+ * It handles platform-specific surface creation logic. On Windows, it uses the
+ * `vkCreateWin32SurfaceKHR` function, while on other platforms, it uses GLFW's
  * `glfwCreateWindowSurface` function.
  *
  * @param instance The Vulkan instance used to create the surface. Must not be VK_NULL_HANDLE.
@@ -442,10 +442,10 @@ void maverik::vk::RenderingContext::createCommandPool()
  * The staging buffer is destroyed after the data transfer is complete.
  *
  * @details
- * - A staging buffer is created with `VK_BUFFER_USAGE_TRANSFER_SRC_BIT` and 
+ * - A staging buffer is created with `VK_BUFFER_USAGE_TRANSFER_SRC_BIT` and
  *   `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` properties.
  * - The vertex data is mapped to the staging buffer memory and copied using `memcpy`.
- * - A device-local vertex buffer is created with `VK_BUFFER_USAGE_TRANSFER_DST_BIT` and 
+ * - A device-local vertex buffer is created with `VK_BUFFER_USAGE_TRANSFER_DST_BIT` and
  *   `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT` properties.
  * - The data is transferred from the staging buffer to the vertex buffer using a command buffer.
  * - The staging buffer and its associated memory are cleaned up after the transfer.
@@ -577,7 +577,7 @@ void maverik::vk::RenderingContext::createIndexBuffer()
  * - The size of each uniform buffer is determined by the size of the `UniformBufferObject`.
  * - The number of uniform buffers created corresponds to the `MAX_FRAMES_IN_FLIGHT` constant.
  * - The buffers are created with the `VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT` usage flag.
- * - The memory properties used are `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and 
+ * - The memory properties used are `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and
  *   `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` to allow CPU access and ensure memory coherency.
  * - The memory for each buffer is mapped immediately after allocation for future use.
  *
@@ -634,14 +634,14 @@ void maverik::vk::RenderingContext::setupDebugMessenger(VkInstance instance)
 /**
  * @brief Creates a Vulkan descriptor pool for managing descriptor sets.
  *
- * This function initializes a descriptor pool with specific pool sizes for 
- * uniform buffers and combined image samplers. The number of descriptors 
+ * This function initializes a descriptor pool with specific pool sizes for
+ * uniform buffers and combined image samplers. The number of descriptors
  * allocated for each type is determined by the constant MAX_FRAMES_IN_FLIGHT.
  *
  * @throws std::runtime_error If the Vulkan descriptor pool creation fails.
  *
- * The descriptor pool is used to allocate descriptor sets, which are 
- * essential for binding resources (e.g., buffers and images) to shaders 
+ * The descriptor pool is used to allocate descriptor sets, which are
+ * essential for binding resources (e.g., buffers and images) to shaders
  * during rendering.
  */
 void maverik::vk::RenderingContext::createDescriptorPool()
@@ -795,17 +795,17 @@ void maverik::vk::RenderingContext::createCommandBuffers()
 /**
  * @brief Creates synchronization objects required for rendering operations.
  *
- * This function initializes semaphores and fences used to synchronize the 
+ * This function initializes semaphores and fences used to synchronize the
  * rendering process. It creates the following synchronization objects:
  * - Image available semaphores: Signal when an image is available for rendering.
  * - Render finished semaphores: Signal when rendering is complete.
- * - In-flight fences: Ensure that a frame is not rendered until the previous 
+ * - In-flight fences: Ensure that a frame is not rendered until the previous
  *   frame has finished.
  *
- * Each synchronization object is created for the maximum number of frames 
+ * Each synchronization object is created for the maximum number of frames
  * that can be in flight simultaneously, defined by `MAX_FRAMES_IN_FLIGHT`.
  *
- * @throws std::runtime_error If any of the synchronization objects fail to 
+ * @throws std::runtime_error If any of the synchronization objects fail to
  *         be created.
  */
 void maverik::vk::RenderingContext::createSyncObjects()
@@ -829,37 +829,4 @@ void maverik::vk::RenderingContext::createSyncObjects()
             throw std::runtime_error("Failed to create synchronization objects for a frame !");
         }
     }
-}
-
-
-/////////////////////
-// Private methods //
-/////////////////////
-
-/**
- * @brief Determines the maximum usable sample count for multisampling.
- *
- * This function queries the physical device properties to determine the 
- * maximum sample count that can be used for both color and depth 
- * framebuffer attachments. It checks the supported sample counts in 
- * descending order of quality (from 64x to 1x) and returns the highest 
- * supported sample count.
- *
- * @return VkSampleCountFlagBits The maximum usable sample count supported 
- *         by the physical device.
- */
-VkSampleCountFlagBits maverik::vk::RenderingContext::getMaxUsableSampleCount()
-{
-    VkPhysicalDeviceProperties physicalDeviceProperties;
-    vkGetPhysicalDeviceProperties(_physicalDevice, &physicalDeviceProperties);
-
-    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
-    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
-    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
-    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
-
-    return VK_SAMPLE_COUNT_1_BIT;
 }
