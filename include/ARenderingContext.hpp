@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vulkan.hpp>
+#include <memory>
 
 /**
  * @struct VulkanContext
@@ -68,6 +69,9 @@ namespace maverik {
             }
 
         protected:
+
+            VkSampleCountFlagBits getMaxUsableSampleCount() const;
+
             VkDevice _logicalDevice;
             VkPhysicalDevice _physicalDevice;
             VkQueue _graphicsQueue;
