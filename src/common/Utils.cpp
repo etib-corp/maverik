@@ -142,12 +142,8 @@ maverik::Utils::QueueFamilyIndices maverik::Utils::findQueueFamilies(VkPhysicalD
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphicsFamily = i;
-        }
-
-        if (indices.isComplete()) {
             break;
         }
-
         i++;
     }
 
