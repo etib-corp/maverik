@@ -442,7 +442,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._format = VK_FORMAT_R8G8B8A8_SRGB,
         ._tiling = VK_IMAGE_TILING_OPTIMAL,
         ._usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._imageMemory = _textureImageMemory
     };
     Utils::createImage(imageProperties);
@@ -451,7 +451,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._logicalDevice = properties._logicalDevice,
         ._commandPool = properties._commandPool,
         ._graphicsQueue = properties._graphicsQueue,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._format = VK_FORMAT_R8G8B8A8_SRGB,
         ._oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         ._newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -464,7 +464,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._commandPool = properties._commandPool,
         ._graphicsQueue = properties._graphicsQueue,
         ._buffer = stagingBuffer,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._width = (uint32_t)texWidth,
         ._height = (uint32_t)texHeight
     };
@@ -475,7 +475,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._logicalDevice = properties._logicalDevice,
         ._commandPool = properties._commandPool,
         ._graphicsQueue = properties._graphicsQueue,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._mipLevels = _mipLevels,
         ._texWidth = (uint32_t)texWidth,
         ._texHeight = (uint32_t)texHeight,
@@ -498,7 +498,9 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
  */
 void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevice)
 {
-    _textureImageView = this->createImageView(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+    for (const auto& [textureName, textureImage] : _textureImage) {
+        _textureImageView[textureName] = this->createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+    }
 }
 
 /**

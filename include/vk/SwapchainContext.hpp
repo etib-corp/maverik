@@ -12,6 +12,8 @@
 
     #include "vk/Utils.hpp"
 
+    #include <map>
+
 namespace maverik {
     namespace vk {
         class SwapchainContext : public ASwapchainContext {
@@ -105,9 +107,9 @@ namespace maverik {
                 void createImageViews(VkDevice logicalDevice);
 
                 // Texture images
-                VkImage _textureImage;
+                std::map<std::string, VkImage> _textureImage;
                 VkDeviceMemory _textureImageMemory;
-                VkImageView _textureImageView;
+                std::map<std::string, VkImageView> _textureImageView;
                 VkSampler _textureSampler;
 
                 void createTextureImageView(VkDevice logicalDevice);
