@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "AAssetManager.hpp"
+#include "AAssetsManager.hpp"
 #include <iostream>
 
 /**
@@ -24,10 +24,10 @@ namespace maverik {
          * @class AssetsManager
          * @brief The AssetsManager class is responsible for managing file assets.
          *
-         * This class inherits from AAssetManager and implements the addAsset method
+         * This class inherits from AAssetsManager and implements the addAsset method
          * to load assets from files.
          */
-        class AssetsManager : public AAssetManager {
+        class AssetsManager : public AAssetsManager {
             public:
                 /**
                  * @brief Default constructor for AssetsManager.
@@ -62,8 +62,7 @@ namespace maverik {
                  * @param newPath The new path to save the asset to (optional).
                  * @return True if the asset was saved successfully, false otherwise.
                  *
-                 * This method is pure virtual and must be implemented by derived classes.
-                 * It is responsible for saving the content of the asset to the specified path.
+                 * This method is responsible for saving the content of the asset to the specified path.
                  * If newPath is provided, it will save the asset to that path and will not update the original path.
                  * If newPath is not provided, it will save the asset to the original path.
                  */

@@ -2,7 +2,7 @@
 ** ETIB PROJECT, 2025
 ** maverik
 ** File description:
-** AAssetManager
+** AAssetsManager
 */
 
 #pragma once
@@ -20,15 +20,15 @@
  */
 namespace maverik {
     /**
-     * @class AAssetManager
-     * @brief The AAssetManager class is an abstract base class for managing file assets.
+     * @class AAssetsManager
+     * @brief The AAssetsManager class is an abstract base class for managing file assets.
      */
-    class AAssetManager {
+    class AAssetsManager {
         public:
             /**
-             * @brief Defautl destructor for AAssetManager.
+             * @brief Defautl destructor for AAssetsManager.
              */
-            virtual ~AAssetManager() = default;
+            virtual ~AAssetsManager() = default;
 
             /**
              * @brief Adds an asset to the manager.
