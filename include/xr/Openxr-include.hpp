@@ -14,9 +14,10 @@
 #include "vulkan.hpp"
 
 #include <openxr/openxr.h>
-// #include <jni.h>
+#include <jni.h>
 #include <vulkan/vulkan.h>
 #include <openxr/openxr_platform.h>
 
 #include <iostream>
+#include <map>
 #include <memory>

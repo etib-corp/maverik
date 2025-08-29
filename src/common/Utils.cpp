@@ -602,6 +602,34 @@ void maverik::Utils::copyBuffer(const CopyBufferProperties& properties)
     Utils::endSingleTimeCommands(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, commandBuffer);
 }
 
+
+/**
+ * @brief Determines the maximum usable sample count for multisampling supported by the given physical device.
+ *
+ * This function queries the physical device properties and calculates the highest sample count
+ * that is supported for both color and depth framebuffers. It returns the largest VkSampleCountFlagBits
+ * value that is supported by the device, which can be used for configuring multisampling in Vulkan.
+ *
+ * @param physicalDevice The Vulkan physical device to query for sample count capabilities.
+ * @return VkSampleCountFlagBits The maximum supported sample count for both color and depth framebuffers.
+ */
+VkSampleCountFlagBits maverik::Utils::getMaxUsableSampleCount(const VkPhysicalDevice& physicalDevice)
+{
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+    if (counts & VK_SAMPLE_COUNT_64_BIT) return VK_SAMPLE_COUNT_64_BIT;
+    if (counts & VK_SAMPLE_COUNT_32_BIT) return VK_SAMPLE_COUNT_32_BIT;
+    if (counts & VK_SAMPLE_COUNT_16_BIT) return VK_SAMPLE_COUNT_16_BIT;
+    if (counts & VK_SAMPLE_COUNT_8_BIT) return VK_SAMPLE_COUNT_8_BIT;
+    if (counts & VK_SAMPLE_COUNT_4_BIT) return VK_SAMPLE_COUNT_4_BIT;
+    if (counts & VK_SAMPLE_COUNT_2_BIT) return VK_SAMPLE_COUNT_2_BIT;
+
+    return VK_SAMPLE_COUNT_1_BIT;
+}
+
 /**
  * @brief Creates a Vulkan shader module from the given SPIR-V bytecode.
  *
@@ -683,6 +711,41 @@ VkResult maverik::Utils::createDebugUtilsMessengerEXT(VkInstance instance, const
     }
 }
 
+
+/**
+ * @brief Finds and returns a supported depth/stencil format for the given physical device.
+ *
+ * This function iterates through a list of candidate VkFormat values and checks if each format
+ * supports usage as a depth/stencil attachment with the specified image tiling (optimal).
+ * It queries the format properties of the physical device and returns the first format that
+ * meets the required features.
+ *
+ * @param physicalDevice The Vulkan physical device to query for supported formats.
+ * @return VkFormat The first supported format suitable for depth/stencil attachment.
+ * @throws std::runtime_error If no suitable format is found.
+ */
+VkFormat maverik::Utils::findSupportedDepthFormat(VkPhysicalDevice physicalDevice)
+{
+    const std::vector<VkFormat> candidates = {
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT
+    };
+    VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
+    VkFormatFeatureFlags features = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+    for (auto format : candidates) {
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+            return format;
+        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
+    }
+    throw std::runtime_error("failed to find supported format!");
+}
 
 /////////////////////
 // Private methods //

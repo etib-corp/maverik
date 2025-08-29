@@ -10,7 +10,9 @@
 maverik::xr::SwapchainContext::SwapchainContext(const SwapchainContextCreationPropertiesXR& properties) :
     _instance(properties._instance),
     _systemId(properties._systemId),
-    _session(properties._session)
+    _session(properties._session),
+    _physicalDevice(properties._physicalDevice),
+    _device(properties._device)
 {
     init();
 }
@@ -90,4 +92,155 @@ void maverik::xr::SwapchainContext::init()
             return;
         }
         _swapchain.push_back(swapchain);
+        std::shared_ptr<maverik::xr::SwapChainImage> swapchainImage = createSwapchainImage(swapchainCreateInfo, swapchain);
+
+        _swapchainImages[swapchain.swapchain] = swapchainImage;
+
+        XrSwapchainImageBaseHeader *image = swapchainImage->getFirstImagePointer();
+
+        xrEnumerateSwapchainImages(swapchain.swapchain, swapchainImage->_swapchainImages.size(), nullptr, image);
+    }
+}
+
+std::shared_ptr<maverik::xr::SwapChainImage> maverik::xr::SwapchainContext::createSwapchainImage(XrSwapchainCreateInfo &swapchainCreateInfo, ASwapchain<XrSwapchain> &swapchain)
+{
+    uint32_t imageCount = 0;
+    xrEnumerateSwapchainImages(swapchain.swapchain, 0, &imageCount, nullptr);
+
+    SwapchainImageCreationPropertiesXR properties;
+    properties._capacity = imageCount;
+    properties._device = _device;
+    properties._physicalDevice = _physicalDevice;
+    properties._swapchainCreateInfo = swapchainCreateInfo;
+
+    std::shared_ptr<maverik::xr::SwapChainImage> swapchainImage = std::make_shared<SwapChainImage>();
+    swapchainImage->init(properties);
+
+    return swapchainImage;
+}
+
+
+void maverik::xr::SwapChainImage::init(const SwapchainImageCreationPropertiesXR &properties)
+{
+    _device = properties._device;
+    _physicalDevice = properties._physicalDevice;
+
+    _swapchainImageFormat = static_cast<VkFormat>(properties._swapchainCreateInfo.format);
+    _swapchainExtent = {properties._swapchainCreateInfo.width, properties._swapchainCreateInfo.height};
+
+    _swapchainImages.resize(properties._capacity);
+    _swapchainImageViews.resize(properties._capacity);
+    _swapchainFrameBuffers.resize(properties._capacity);
+
+    _viewport = {
+        .x = 0,
+        .y = static_cast<float>(_swapchainExtent.height),
+        .width = static_cast<float>(_swapchainExtent.width),
+        .height = -static_cast<float>(_swapchainExtent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+    };
+    _scissor.extent = {
+        .width = _swapchainExtent.width,
+        .height = _swapchainExtent.height
+    };
+
+    for (auto &image : _swapchainImages) {
+        image.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR;
+    }
+
+}
+
+void maverik::xr::SwapChainImage::createColorResources()
+{
+    Utils::CreateImageProperties properties = {
+        ._logicalDevice = _device,
+        ._physicalDevice = _physicalDevice,
+        ._width = _swapchainExtent.width,
+        ._height = _swapchainExtent.height,
+        ._mipLevels = 1,
+        ._format = _swapchainImageFormat,
+        ._tiling = VK_IMAGE_TILING_OPTIMAL,
+        ._usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        ._image = _colorImage,
+        ._imageMemory = _depthImageMemory,
+    };
+    Utils::createImage(properties);
+
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = _colorImage;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = _swapchainImageFormat;
+    viewInfo.subresourceRange = {
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        0,
+        1,
+        0,
+        1
+    };
+    if (vkCreateImageView(_device, &viewInfo, nullptr, &_colorImageView) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create image view");
+    }
+    // create the transition image view
+}
+
+void maverik::xr::SwapChainImage::createDepthResources()
+{
+    VkFormat depthFormat = Utils::findSupportedDepthFormat(_physicalDevice);
+    Utils::CreateImageProperties properties = {
+        ._logicalDevice = _device,
+        ._physicalDevice = _physicalDevice,
+        ._width = _swapchainExtent.width,
+        ._height = _swapchainExtent.height,
+        ._mipLevels = 1,
+        ._format = depthFormat,
+        ._tiling = VK_IMAGE_TILING_OPTIMAL,
+        ._usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        ._properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        ._image = _depthImage,
+        ._imageMemory = _depthImageMemory
+    };
+    Utils::createImage(properties);
+
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = _depthImage;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = depthFormat;
+    viewInfo.subresourceRange = {
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        0,
+        1,
+        0,
+        1
+    };
+    if (vkCreateImageView(_device, &viewInfo, nullptr, &_depthImageView) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create image view");
+    }
+
+}
+
+void maverik::xr::SwapChainImage::createFrameBuffers()
+{
+    for (size_t i = 0; i < _swapchainImageViews.size(); i++) {
+        VkImageView attachments[] = {
+            _colorImageView,
+            _depthImageView,
+            _swapchainImageViews[i]
+        };
+
+        VkFramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = nullptr; // Set your render pass here
+        framebufferInfo.attachmentCount = 2;
+        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.width = _swapchainExtent.width;
+        framebufferInfo.height = _swapchainExtent.height;
+        framebufferInfo.layers = 1;
+
+        if (vkCreateFramebuffer(_device, &framebufferInfo, nullptr, &_swapchainFrameBuffers[i]) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create framebuffer");
+        }
+    }
 }
