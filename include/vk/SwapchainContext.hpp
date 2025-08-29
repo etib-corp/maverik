@@ -110,10 +110,10 @@ namespace maverik {
                 std::map<std::string, VkImage> _textureImage;
                 VkDeviceMemory _textureImageMemory;
                 std::map<std::string, VkImageView> _textureImageView;
-                VkSampler _textureSampler;
+                std::map<std::string, VkSampler> _textureSampler;
 
                 void createTextureImageView(VkDevice logicalDevice);
-                void createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice);
+                void createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, const std::string& textureName, VkSamplerCreateInfo samplerInfo = {});
 
                 // Depth images
                 VkImage _depthImage;
@@ -144,6 +144,8 @@ namespace maverik {
                 void createDepthResources(const TextureImageCreationProperties& properties);
 
                 VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
+
+                VkSamplerCreateInfo getDefaultSamplerInfo(const VkPhysicalDeviceProperties& properties);
 
         };
     }

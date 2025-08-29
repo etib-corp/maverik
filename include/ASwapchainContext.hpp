@@ -17,7 +17,7 @@ namespace maverik {
         public:
             virtual ~ASwapchainContext() = default;
 
-        protected:
+
             std::vector<VkImageView> _imageViews;
             VkFormat _swapchainFormat;
             VkExtent2D _swapchainExtent;

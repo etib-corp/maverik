@@ -18,6 +18,8 @@ namespace maverik {
         public:
             virtual ~ASoftware() = default;
 
+            std::shared_ptr<AGraphicalContext> getGraphicalContext();
+
         protected:
             std::string _appName;
             Version *_appVersion;
