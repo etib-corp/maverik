@@ -11,6 +11,12 @@
 
 #include "xr/Openxr-include.hpp"
 
+struct SwapchainImage {
+    XrSwapchain swapchain = XR_NULL_HANDLE;
+    XrSwapchainImageBaseHeader *image = nullptr;
+    uint32_t index = 0;
+};
+
 namespace maverik {
     namespace xr {
         class SwapchainContext : public ASwapchainContext {
@@ -32,4 +38,3 @@ namespace maverik {
         };
     }
 }
-

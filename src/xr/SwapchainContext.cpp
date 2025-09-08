@@ -12,6 +12,7 @@ maverik::xr::SwapchainContext::SwapchainContext(XrInstance instance, XrSystemId 
       _instance(instance),
       _session(session)
 {
+    init();
 }
 
 maverik::xr::SwapchainContext::~SwapchainContext()

@@ -97,5 +97,4 @@ void maverik::xr::GraphicalContext::createInstance()
     }
 
     _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_XRinstance, _instance, _XRsystemID);
-    _renderingContext->init();
 }
