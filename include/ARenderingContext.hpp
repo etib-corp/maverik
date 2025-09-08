@@ -51,14 +51,6 @@ namespace maverik {
 
             virtual void init() = 0;
 
-            virtual void pickPhysicalDevice(VkInstance instance) = 0;
-
-            virtual void createLogicalDevice() = 0;
-
-            virtual void createCommandPool() = 0;
-
-            virtual void createRenderPass() = 0;
-
             /**
              * @brief Retrieves the Vulkan context associated with this rendering context.
              *
@@ -69,6 +61,16 @@ namespace maverik {
             }
 
         protected:
+
+            virtual void pickPhysicalDevice(VkInstance instance) = 0;
+
+            virtual void createLogicalDevice() = 0;
+
+            virtual void createCommandPool() = 0;
+
+            virtual void createRenderPass() = 0;
+
+            virtual void createGraphicsPipeline(VkRenderPass renderPass) = 0;
 
             VkSampleCountFlagBits getMaxUsableSampleCount() const;
 

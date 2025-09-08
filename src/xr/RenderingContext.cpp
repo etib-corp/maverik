@@ -7,10 +7,9 @@
 
 #include "xr/RenderingContext.hpp"
 
-maverik::xr::RenderingContext::RenderingContext(XrInstance XRinstance, VkInstance instance, XrSystemId systemID)
-    : _XRinstance(XRinstance), _vulkanInstance(instance), _XRsystemID(systemID)
+maverik::xr::RenderingContext::RenderingContext(const RenderingContextPropertiesXR &properties)
+    : _XRinstance(properties._XRinstance), _XRsystemID(properties._XRsystemID), _vulkanInstance(properties._vulkanInstance)
 {
-    _vulkanContext = std::make_shared<VulkanContext>();
     init();
 }
 
@@ -20,19 +19,14 @@ maverik::xr::RenderingContext::~RenderingContext()
 
 void maverik::xr::RenderingContext::init()
 {
-    pickPhysicalDevice();
+    pickPhysicalDevice(_vulkanInstance);
     createLogicalDevice();
     createCommandPool();
 
-    _vulkanContext->logicalDevice = _logicalDevice;
-    _vulkanContext->physicalDevice = _physicalDevice;
-    _vulkanContext->graphicsQueue = _graphicsQueue;
-    _vulkanContext->commandPool = _commandPool;
-    _vulkanContext->graphicsQueueFamilyIndex = Utils::findQueueFamilies(_physicalDevice).graphicsFamily.value();
-    _vulkanContext->renderPass = VK_NULL_HANDLE;
+    _vulkanContext = std::make_shared<VulkanContext>(_logicalDevice, _physicalDevice, _graphicsQueue, nullptr, _commandPool, Utils::findQueueFamilies(_physicalDevice).graphicsFamily.value());
 }
 
-void maverik::xr::RenderingContext::pickPhysicalDevice()
+void maverik::xr::RenderingContext::pickPhysicalDevice(VkInstance instance)
 {
     if (_XRinstance == XR_NULL_HANDLE) {
         std::cerr << "XR instance is not initialized" << std::endl;
@@ -52,7 +46,7 @@ void maverik::xr::RenderingContext::pickPhysicalDevice()
     }
     graphicsDeviceGetInfo.type = XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR;
     graphicsDeviceGetInfo.systemId = _XRsystemID;
-    graphicsDeviceGetInfo.vulkanInstance = _vulkanInstance;
+    graphicsDeviceGetInfo.vulkanInstance = instance;
 
     if (xrGetVulkanGraphicsDevice2KHR(_XRinstance, &graphicsDeviceGetInfo, &_physicalDevice) != XR_SUCCESS) {
         std::cerr << "Failed to get Vulkan graphics device" << std::endl;
@@ -153,6 +147,11 @@ void maverik::xr::RenderingContext::createCommandPool()
         std::cerr << "Failed to create Vulkan command pool" << std::endl;
         return;
     }
+}
+
+void maverik::xr::RenderingContext::createRenderPass()
+{
+    // Implementation for creating a render pass can be added here
 }
 
 void maverik::xr::RenderingContext::createGraphicsPipeline(VkRenderPass renderPass)

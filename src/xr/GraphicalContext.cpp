@@ -7,34 +7,17 @@
 
 #include "xr/GraphicalContext.hpp"
 
-maverik::xr::GraphicalContext::GraphicalContext(XrInstance instance, XrSystemId systemID)
-    : _XRinstance(instance), _XRsystemID(systemID)
+maverik::xr::GraphicalContext::GraphicalContext(const GraphicalContextPropertiesXR &properties)
+    : _XRinstance(properties._XRinstance), _XRsystemID(properties._XRsystemID)
 {
-    _renderingContext = nullptr;
-    _swapchainContext = nullptr;
+    init();
 }
 
 maverik::xr::GraphicalContext::~GraphicalContext()
 {
 }
 
-
 void maverik::xr::GraphicalContext::init()
-{
-    createInstance();
-}
-
-void maverik::xr::GraphicalContext::run()
-{
-}
-
-std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
-{
-    return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
-}
-
-
-void maverik::xr::GraphicalContext::createInstance()
 {
     XrGraphicsRequirementsVulkan2KHR graphicsRequirements{};
     PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
@@ -96,5 +79,14 @@ void maverik::xr::GraphicalContext::createInstance()
         return;
     }
 
-    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_XRinstance, _instance, _XRsystemID);
+    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_instance, graphicsRequirements);
+}
+
+void maverik::xr::GraphicalContext::run()
+{
+}
+
+std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
+{
+    return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
 }

@@ -18,7 +18,7 @@ namespace maverik {
             virtual ~ASwapchainContext() = default;
 
             virtual uint64_t getSwapchainFormat() const {
-                return _swapchaineFormat;
+                return _swapchainColorFormat;
             }
 
         protected:
@@ -31,7 +31,7 @@ namespace maverik {
 
             uint32_t _mipLevels;
 
-            uint64_t _swapchaineFormat = 0;
+            uint64_t _swapchainColorFormat = 0;
 
             #if defined(XIDER_VK_IMPLEMENTATION)
                 ASwapchain<VkSwapchainKHR> _swapchain;

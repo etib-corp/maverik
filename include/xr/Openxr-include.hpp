@@ -19,4 +19,5 @@
 #include <openxr/openxr_platform.h>
 
 #include <iostream>
+#include <map>
 #include <memory>

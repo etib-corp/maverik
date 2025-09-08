@@ -12,14 +12,15 @@ maverik::xr::Software::Software(const std::shared_ptr<PlatformData> &platformDat
 {
     _platform = std::make_shared<AndroidPlatform>(platformData);
     _graphicalContext = nullptr;
+
     createInstance();
     initializeSystem();
-    _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(_XRinstance, _XRsystemID);
-    _graphicalContext->init();
+    GraphicalContextPropertiesXR properties;
+    properties._XRinstance = _XRinstance;
+    properties._XRsystemID = _XRsystemID;
+    _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(properties);
     initializeSession();
-    std::shared_ptr<maverik::xr::SwapchainContext> swapchainContext = std::make_shared<maverik::xr::SwapchainContext>(_XRinstance, _XRsystemID, _XRsession);
-    swapchainContext->init();
-    _graphicalContext->setSwapchainContext(swapchainContext);
+
 }
 
 maverik::xr::Software::~Software()
