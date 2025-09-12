@@ -5,7 +5,7 @@
 ** Utils
 */
 
-#include "vk/Utils.hpp"
+#include "Utils.hpp"
 
 /**
  * @brief Reads the contents of a binary file into a vector of characters.
@@ -18,7 +18,7 @@
  *
  * @throws std::runtime_error If the file cannot be opened.
  */
-std::vector<char> maverik::vk::Utils::readFile(const std::string& filename)
+std::vector<char> maverik::Utils::readFile(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -51,7 +51,7 @@ std::vector<char> maverik::vk::Utils::readFile(const std::string& filename)
 * - Formats: A list of supported surface formats (e.g., pixel format and color space).
 * - Present Modes: A list of supported presentation modes (e.g., FIFO, Mailbox, etc.).
 */
-maverik::vk::Utils::SwapChainSupportDetails maverik::vk::Utils::querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+maverik::Utils::SwapChainSupportDetails maverik::Utils::querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     SwapChainSupportDetails details;
     uint32_t formatCount;
@@ -83,7 +83,7 @@ maverik::vk::Utils::SwapChainSupportDetails maverik::vk::Utils::querySwapChainSu
 * @return QueueFamilyIndices A structure containing the indices of the graphics and presentation queue families.
 *         If no suitable queue families are found, the indices will remain incomplete.
 */
-maverik::vk::Utils::QueueFamilyIndices maverik::vk::Utils::findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+maverik::Utils::QueueFamilyIndices maverik::Utils::findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     QueueFamilyIndices indices;
 
@@ -132,7 +132,7 @@ maverik::vk::Utils::QueueFamilyIndices maverik::vk::Utils::findQueueFamilies(VkP
 * @return The index of a suitable memory type.
 * @throws std::runtime_error If no suitable memory type is found.
 */
-uint32_t maverik::vk::Utils::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t maverik::Utils::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     VkPhysicalDeviceMemoryProperties memProperties;
 
@@ -165,7 +165,7 @@ uint32_t maverik::vk::Utils::findMemoryType(VkPhysicalDevice physicalDevice, uin
 * - VK_IMAGE_TILING_OPTIMAL
 * - VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
 */
-VkFormat maverik::vk::Utils::findDepthFormat(VkPhysicalDevice physicalDevice)
+VkFormat maverik::Utils::findDepthFormat(VkPhysicalDevice physicalDevice)
 {
     return findSupportedFormat(
         physicalDevice,
@@ -197,7 +197,7 @@ VkFormat maverik::vk::Utils::findDepthFormat(VkPhysicalDevice physicalDevice)
 *
 * @throws std::runtime_error If the image creation or memory allocation fails.
 */
-void maverik::vk::Utils::createImage(const CreateImageProperties& properties)
+void maverik::Utils::createImage(const CreateImageProperties& properties)
 {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -255,7 +255,7 @@ void maverik::vk::Utils::createImage(const CreateImageProperties& properties)
 * @note This function assumes that the image is not being used concurrently
 *       by other operations during the transition.
 */
-void maverik::vk::Utils::transitionImageLayout(const TransitionImageLayoutProperties& properties)
+void maverik::Utils::transitionImageLayout(const TransitionImageLayoutProperties& properties)
 {
     VkCommandBuffer commandBuffer = Utils::beginSingleTimeCommands(properties._logicalDevice, properties._commandPool);
 
@@ -339,7 +339,7 @@ void maverik::vk::Utils::transitionImageLayout(const TransitionImageLayoutProper
  * - Checks that the swap chain is adequate (has at least one format and one present mode).
  * - Confirms that the device supports anisotropic sampling.
  */
-bool maverik::vk::Utils::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions)
+bool maverik::Utils::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions)
 {
     QueueFamilyIndices indices = Utils::findQueueFamilies(device, surface);
     bool extensionsSupported = Utils::checkDeviceExtensionSupport(device, deviceExtensions);
@@ -372,7 +372,7 @@ bool maverik::vk::Utils::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR 
  *
  * @throws std::runtime_error If the buffer creation or memory allocation fails.
  */
-void maverik::vk::Utils::createBuffer(const CreateBufferProperties& properties)
+void maverik::Utils::createBuffer(const CreateBufferProperties& properties)
 {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -413,7 +413,7 @@ void maverik::vk::Utils::createBuffer(const CreateBufferProperties& properties)
  * @param width The width of the image in pixels.
  * @param height The height of the image in pixels.
  */
-void maverik::vk::Utils::copyBufferToImage(const CopyBufferToImageProperties& properties)
+void maverik::Utils::copyBufferToImage(const CopyBufferToImageProperties& properties)
 {
     VkCommandBuffer commandBuffer = Utils::beginSingleTimeCommands(properties._logicalDevice, properties._commandPool);
 
@@ -456,7 +456,7 @@ void maverik::vk::Utils::copyBufferToImage(const CopyBufferToImageProperties& pr
  *
  * @throws std::runtime_error If the image format does not support linear blitting.
  */
-void maverik::vk::Utils::generateMipmaps(const GenerateMipmapsProperties& properties)
+void maverik::Utils::generateMipmaps(const GenerateMipmapsProperties& properties)
 {
     VkFormatProperties formatProperties;
     vkGetPhysicalDeviceFormatProperties(properties._physicalDevice, properties._imageFormat, &formatProperties);
@@ -557,7 +557,7 @@ void maverik::vk::Utils::generateMipmaps(const GenerateMipmapsProperties& proper
  * @param dstBuffer The destination buffer where the data will be copied to.
  * @param size The size of the data to copy, in bytes.
  */
-void maverik::vk::Utils::copyBuffer(const CopyBufferProperties& properties)
+void maverik::Utils::copyBuffer(const CopyBufferProperties& properties)
 {
     VkCommandBuffer commandBuffer = Utils::beginSingleTimeCommands(properties._logicalDevice, properties._commandPool);
 
@@ -581,7 +581,7 @@ void maverik::vk::Utils::copyBuffer(const CopyBufferProperties& properties)
  * the creation of shader modules. The input SPIR-V bytecode is passed as a
  * vector of bytes, which is converted to the required format for Vulkan.
  */
-VkShaderModule maverik::vk::Utils::createShaderModule(VkDevice logicalDevice, const std::vector<char>& code)
+VkShaderModule maverik::Utils::createShaderModule(VkDevice logicalDevice, const std::vector<char>& code)
 {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -610,7 +610,7 @@ VkShaderModule maverik::vk::Utils::createShaderModule(VkDevice logicalDevice, co
  * - Message types: General, Validation, and Performance.
  * - The user-defined callback function for handling debug messages.
  */
-void maverik::vk::Utils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo, PFN_vkDebugUtilsMessengerCallbackEXT debugCallback)
+void maverik::Utils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo, PFN_vkDebugUtilsMessengerCallbackEXT debugCallback)
 {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -639,7 +639,7 @@ void maverik::vk::Utils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerC
  * @note This function requires the `VK_EXT_debug_utils` extension to be enabled.
  *       Ensure that the extension is available and enabled in the Vulkan instance.
  */
-VkResult maverik::vk::Utils::createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+VkResult maverik::Utils::createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -666,7 +666,7 @@ VkResult maverik::vk::Utils::createDebugUtilsMessengerEXT(VkInstance instance, c
  *
  * @throws std::runtime_error If the image view creation fails.
  */
-VkImageView maverik::vk::Utils::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice, uint32_t mipLevels)
+VkImageView maverik::Utils::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice, uint32_t mipLevels)
 {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -708,7 +708,7 @@ VkImageView maverik::vk::Utils::createImageView(VkImage image, VkFormat format, 
 *
 * @throws std::runtime_error If no supported format is found in the candidates list.
 */
-VkFormat maverik::vk::Utils::findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+VkFormat maverik::Utils::findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 {
     for (VkFormat format : candidates) {
         VkFormatProperties props;
@@ -734,7 +734,7 @@ VkFormat maverik::vk::Utils::findSupportedFormat(VkPhysicalDevice physicalDevice
 * @param format The Vulkan format to check (VkFormat).
 * @return true if the format includes a stencil component, false otherwise.
 */
-bool maverik::vk::Utils::hasStencilComponent(VkFormat format)
+bool maverik::Utils::hasStencilComponent(VkFormat format)
 {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
@@ -755,7 +755,7 @@ bool maverik::vk::Utils::hasStencilComponent(VkFormat format)
 * @note The caller is responsible for ending the command buffer recording and submitting
 *       it to a queue, as well as cleaning up resources after use.
 */
-VkCommandBuffer maverik::vk::Utils::beginSingleTimeCommands(VkDevice logicalDevice, VkCommandPool commandPool)
+VkCommandBuffer maverik::Utils::beginSingleTimeCommands(VkDevice logicalDevice, VkCommandPool commandPool)
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -787,7 +787,7 @@ VkCommandBuffer maverik::vk::Utils::beginSingleTimeCommands(VkDevice logicalDevi
  * @param graphicsQueue The Vulkan queue to which the command buffer is submitted.
  * @param commandBuffer The command buffer to be ended, submitted, and freed.
  */
-void maverik::vk::Utils::endSingleTimeCommands(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer)
+void maverik::Utils::endSingleTimeCommands(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer)
 {
     vkEndCommandBuffer(commandBuffer);
 
@@ -812,7 +812,7 @@ void maverik::vk::Utils::endSingleTimeCommands(VkDevice logicalDevice, VkCommand
  * @param deviceExtensions A vector of required device extension names as C-style strings.
  * @return true if all required extensions are supported by the device, false otherwise.
  */
-bool maverik::vk::Utils::checkDeviceExtensionSupport(VkPhysicalDevice device, std::vector<const char*> deviceExtensions)
+bool maverik::Utils::checkDeviceExtensionSupport(VkPhysicalDevice device, std::vector<const char*> deviceExtensions)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);

@@ -10,7 +10,7 @@
 
     #include "ARenderingContext.hpp"
 
-    #include "vk/Utils.hpp"
+    #include "Utils.hpp"
 
     #include <map>
 

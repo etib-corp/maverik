@@ -9,7 +9,7 @@
 
 #include <vulkan.hpp>
 
-#include "vk/Utils.hpp"
+#include "Utils.hpp"
 
 /**
  * @struct VulkanContext
@@ -76,7 +76,7 @@ namespace maverik {
              */
             void createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, VkSampleCountFlagBits msaaSamples)
             {
-                auto swapchainSupport = maverik::vk::Utils::querySwapChainSupport(physicalDevice, surface);
+                auto swapchainSupport = maverik::Utils::querySwapChainSupport(physicalDevice, surface);
                 auto swapchainFormat = this->chooseSwapSurfaceFormat(swapchainSupport.formats);
 
                 VkAttachmentDescription colorAttachment{};
@@ -90,7 +90,7 @@ namespace maverik {
                 colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
                 VkAttachmentDescription depthAttachment{};
-                depthAttachment.format = maverik::vk::Utils::findDepthFormat(physicalDevice);
+                depthAttachment.format = maverik::Utils::findDepthFormat(physicalDevice);
                 depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
