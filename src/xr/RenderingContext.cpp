@@ -119,10 +119,7 @@ void maverik::xr::RenderingContext::createLogicalDevice()
         return;
     }
 
-    if (vkGetDeviceQueue(_logicalDevice, queueCreateInfo.queueFamilyIndex, 0, &_graphicsQueue) != VK_SUCCESS) {
-        std::cerr << "Failed to get Vulkan queue" << std::endl;
-        return;
-    }
+    vkGetDeviceQueue(_logicalDevice, queueCreateInfo.queueFamilyIndex, 0, &_graphicsQueue);
 }
 
 void maverik::xr::RenderingContext::createCommandPool()
