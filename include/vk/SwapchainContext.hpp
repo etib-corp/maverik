@@ -12,6 +12,8 @@
 
     #include "Utils.hpp"
 
+    #include <map>
+
 namespace maverik {
     namespace vk {
         class SwapchainContext : public ASwapchainContext {
@@ -54,6 +56,10 @@ namespace maverik {
                      * @brief The Vulkan graphics queue used for rendering commands.
                      */
                     VkQueue _graphicsQueue;
+                    /*
+                     * @brief The Vulkan render pass used for rendering operations.
+                     */
+                    VkRenderPass _renderPass;
                 };
 
                 /**
@@ -105,13 +111,13 @@ namespace maverik {
                 void createImageViews(VkDevice logicalDevice);
 
                 // Texture images
-                VkImage _textureImage;
+                std::map<std::string, VkImage> _textureImage;
                 VkDeviceMemory _textureImageMemory;
-                VkImageView _textureImageView;
-                VkSampler _textureSampler;
+                std::map<std::string, VkImageView> _textureImageView;
+                std::map<std::string, VkSampler> _textureSampler;
 
                 void createTextureImageView(VkDevice logicalDevice);
-                void createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice);
+                void createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, const std::string& textureName, VkSamplerCreateInfo samplerInfo = {});
 
                 // Depth images
                 VkImage _depthImage;
@@ -123,15 +129,12 @@ namespace maverik {
                 VkDeviceMemory _colorImageMemory;
                 VkImageView _colorImageView;
 
-                // Render pass
-                void createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSampleCountFlagBits msaaSamples);
-
                 // Used to create the swapchain
                 void init(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window);
 
                 void cleanup(VkDevice logicalDevice);
 
-                void createFramebuffers(VkDevice logicalDevice);
+                void createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass);
 
             private:
                 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -142,6 +145,8 @@ namespace maverik {
                 void createDepthResources(const TextureImageCreationProperties& properties);
 
                 VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
+
+                VkSamplerCreateInfo getDefaultSamplerInfo(const VkPhysicalDeviceProperties& properties);
 
         };
     }

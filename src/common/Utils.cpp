@@ -299,7 +299,7 @@ void maverik::Utils::transitionImageLayout(const TransitionImageLayoutProperties
     barrier.newLayout = properties._newLayout;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = properties._image;
+    barrier.image = properties._image;  
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
@@ -602,7 +602,6 @@ void maverik::Utils::copyBuffer(const CopyBufferProperties& properties)
     Utils::endSingleTimeCommands(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, commandBuffer);
 }
 
-
 /**
  * @brief Determines the maximum usable sample count for multisampling supported by the given physical device.
  *
@@ -711,7 +710,6 @@ VkResult maverik::Utils::createDebugUtilsMessengerEXT(VkInstance instance, const
     }
 }
 
-
 /**
  * @brief Finds and returns a supported depth/stencil format for the given physical device.
  *
@@ -745,6 +743,44 @@ VkFormat maverik::Utils::findSupportedDepthFormat(VkPhysicalDevice physicalDevic
         }
     }
     throw std::runtime_error("failed to find supported format!");
+
+/**
+ * @brief Creates a Vulkan image view for a given image.
+ *
+ * This function sets up and creates a Vulkan image view, which is used to
+ * describe how an image resource should be accessed. It specifies the format,
+ * view type, and subresource range for the image view.
+ *
+ * @param image The Vulkan image for which the image view is created.
+ * @param format The format of the image view (e.g., VK_FORMAT_R8G8B8A8_SRGB).
+ * @param aspectFlags Specifies which aspect(s) of the image are included in the view 
+ *                    (e.g., VK_IMAGE_ASPECT_COLOR_BIT for color images).
+ * @param logicalDevice The Vulkan logical device used to create the image view.
+ *
+ * @return A VkImageView handle representing the created image view.
+ *
+ * @throws std::runtime_error If the image view creation fails.
+ */
+VkImageView maverik::Utils::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice, uint32_t mipLevels)
+{
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = aspectFlags;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+    viewInfo.subresourceRange.levelCount = mipLevels;
+
+    VkImageView imageView;
+    if (vkCreateImageView(logicalDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture image view!");
+    }
+
+    return imageView;
 }
 
 /////////////////////

@@ -44,8 +44,7 @@ maverik::vk::SwapchainContext::SwapchainContext(const SwapchainContextCreationPr
 
     this->createColorResources(properties._logicalDevice, properties._physicalDevice, properties._msaaSamples);
     this->createDepthResources(textureImageProperties);
-    this->createFramebuffers(properties._logicalDevice);
-    this->createRenderPass(properties._physicalDevice, properties._logicalDevice, properties._msaaSamples);
+    this->createFramebuffers(properties._logicalDevice, properties._renderPass);
 }
 
 /**
@@ -97,7 +96,7 @@ void maverik::vk::SwapchainContext::recreate(const SwapchainContextCreationPrope
 
     this->createColorResources(properties._logicalDevice, properties._physicalDevice, properties._msaaSamples);
     this->createDepthResources(textureImageProperties);
-    this->createFramebuffers(properties._logicalDevice);
+    this->createFramebuffers(properties._logicalDevice, properties._renderPass);
 }
 
 ///////////////////////
@@ -195,45 +194,6 @@ void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
 }
 
 /**
- * @brief Creates a Vulkan image view for a given image.
- *
- * This function sets up and creates a Vulkan image view, which is used to
- * describe how an image resource should be accessed. It specifies the format,
- * view type, and subresource range for the image view.
- *
- * @param image The Vulkan image for which the image view is created.
- * @param format The format of the image view (e.g., VK_FORMAT_R8G8B8A8_SRGB).
- * @param aspectFlags Specifies which aspect(s) of the image are included in the view 
- *                    (e.g., VK_IMAGE_ASPECT_COLOR_BIT for color images).
- * @param logicalDevice The Vulkan logical device used to create the image view.
- *
- * @return A VkImageView handle representing the created image view.
- *
- * @throws std::runtime_error If the image view creation fails.
- */
-VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice)
-{
-    VkImageViewCreateInfo viewInfo{};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.image = image;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask = aspectFlags;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
-    viewInfo.subresourceRange.levelCount = _mipLevels;
-
-    VkImageView imageView;
-    if (vkCreateImageView(logicalDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture image view!");
-    }
-
-    return imageView;
-}
-
-/**
  * @brief Creates framebuffers for the swapchain images.
  *
  * This function initializes a framebuffer for each image view in the swapchain.
@@ -246,7 +206,7 @@ VkImageView maverik::vk::SwapchainContext::createImageView(VkImage image, VkForm
  *
  * @throws std::runtime_error If framebuffer creation fails.
  */
-void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice)
+void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass)
 {
     _swapchainFramebuffers.resize(_imageViews.size());
 
@@ -259,7 +219,7 @@ void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice)
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = _renderPass;
+        framebufferInfo.renderPass = renderPass;
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = _swapchainExtent.width;
@@ -292,94 +252,6 @@ void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
     }
 
     vkDestroySwapchainKHR(logicalDevice, _swapchain.swapchain, nullptr);
-}
-
-/**
- * @brief Creates a Vulkan render pass for the swapchain context.
- *
- * This function sets up a render pass with color, depth, and resolve attachments,
- * supporting multisample anti-aliasing (MSAA) as specified by the msaaSamples parameter.
- * The render pass is configured for use in a graphics pipeline, with appropriate
- * subpass and dependency settings for color and depth outputs.
- *
- * @param physicalDevice The Vulkan physical device used to determine supported formats.
- * @param logicalDevice The Vulkan logical device used to create the render pass.
- * @param msaaSamples The number of samples per pixel for MSAA (multisample anti-aliasing).
- *
- * @throws std::runtime_error If the render pass creation fails.
- */
-void maverik::vk::SwapchainContext::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSampleCountFlagBits msaaSamples)
-{
-    VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = _swapchainFormat;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.samples = msaaSamples;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkAttachmentDescription depthAttachment{};
-    depthAttachment.format = Utils::findDepthFormat(physicalDevice);
-    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    depthAttachment.samples = msaaSamples;
-
-    VkAttachmentReference colorAttachmentRef{};
-    colorAttachmentRef.attachment = 0;
-    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkAttachmentReference depthAttachmentRef{};
-    depthAttachmentRef.attachment = 1;
-    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    VkAttachmentDescription colorAttachmentResolve{};
-    colorAttachmentResolve.format = _swapchainFormat;
-    colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentReference colorAttachmentResolveRef{};
-    colorAttachmentResolveRef.attachment = 2;
-    colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkSubpassDescription subpass{};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachmentRef;
-    subpass.pDepthStencilAttachment = &depthAttachmentRef;
-    subpass.pResolveAttachments = &colorAttachmentResolveRef;
-
-    VkSubpassDependency dependency{};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-    std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
-    VkRenderPassCreateInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    renderPassInfo.pAttachments = attachments.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-
-    if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create render pass!");
-    }
 }
 
 /**
@@ -442,7 +314,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._format = VK_FORMAT_R8G8B8A8_SRGB,
         ._tiling = VK_IMAGE_TILING_OPTIMAL,
         ._usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._imageMemory = _textureImageMemory
     };
     Utils::createImage(imageProperties);
@@ -451,7 +323,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._logicalDevice = properties._logicalDevice,
         ._commandPool = properties._commandPool,
         ._graphicsQueue = properties._graphicsQueue,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._format = VK_FORMAT_R8G8B8A8_SRGB,
         ._oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         ._newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -464,7 +336,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._commandPool = properties._commandPool,
         ._graphicsQueue = properties._graphicsQueue,
         ._buffer = stagingBuffer,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._width = (uint32_t)texWidth,
         ._height = (uint32_t)texHeight
     };
@@ -475,7 +347,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
         ._logicalDevice = properties._logicalDevice,
         ._commandPool = properties._commandPool,
         ._graphicsQueue = properties._graphicsQueue,
-        ._image = _textureImage,
+        ._image = _textureImage[texturePath],
         ._mipLevels = _mipLevels,
         ._texWidth = (uint32_t)texWidth,
         ._texHeight = (uint32_t)texHeight,
@@ -498,7 +370,9 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
  */
 void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevice)
 {
-    _textureImageView = this->createImageView(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+    for (const auto& [textureName, textureImage] : _textureImage) {
+        _textureImageView[textureName] = this->createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+    }
 }
 
 /**
@@ -510,36 +384,23 @@ void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevic
  *
  * @param logicalDevice The Vulkan logical device used to create the sampler.
  * @param physicalDevice The Vulkan physical device used to query device properties.
+ * @param textureName The name of the texture for which the sampler is being created.
  *
  * @throws std::runtime_error If the sampler creation fails.
  */
-void maverik::vk::SwapchainContext::createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice)
+void maverik::vk::SwapchainContext::createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, const std::string& textureName, VkSamplerCreateInfo samplerInfo)
 {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
-    VkSamplerCreateInfo samplerInfo{};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = static_cast<float>(_mipLevels);
-    samplerInfo.mipLodBias = 0.0f;
+    // Check if samplerInfo is "empty" by testing its sType field.
+    // If sType is not set, it's likely uninitialized.
+    if (samplerInfo.sType == 0) {
+        samplerInfo = this->getDefaultSamplerInfo(properties);
+    }
 
-    if (vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &_textureSampler) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create texture sampler !");
+    if (vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &_textureSampler[textureName]) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create texture sampler for " + textureName + " !");
     }
 }
 
@@ -707,4 +568,26 @@ void maverik::vk::SwapchainContext::createDepthResources(const TextureImageCreat
         ._mipLevels = 1 // No mipmaps for depth attachment
     };
     Utils::transitionImageLayout(transitionProperties);
+}
+
+VkSamplerCreateInfo maverik::vk::SwapchainContext::getDefaultSamplerInfo(const VkPhysicalDeviceProperties& properties)
+{
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = static_cast<float>(_mipLevels);
+    return samplerInfo;
 }

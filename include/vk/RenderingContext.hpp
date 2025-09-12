@@ -12,6 +12,8 @@
 
     #include "Utils.hpp"
 
+    #include <map>
+
     /*
      * @brief Maximum number of frames in flight.
      *
@@ -194,24 +196,15 @@ namespace maverik {
                      *
                     */
                     VkRenderPass _renderPass;
-                    /*
-                     * @brief Image view representing the texture to be used in rendering.
+
+                    /**
+                     * @brief Associates Vulkan image views with their corresponding samplers.
                      *
-                     * This member holds the image view that represents the texture image
-                     * used in rendering operations. It is essential for accessing the
-                     * texture data during rendering.
-                     *
-                    */
-                    VkImageView _textureImageView;
-                    /*
-                     * @brief Sampler used for sampling the texture image.
-                     *
-                     * This member holds the sampler that is used to sample the texture
-                     * image during rendering. It defines how the texture is sampled and
-                     * filtered.
-                     *
-                    */
-                    VkSampler _textureSampler;
+                     * This map stores pairs of VkImageView and VkSampler, allowing efficient lookup
+                     * of the sampler used for a particular image view. It is typically used in rendering
+                     * contexts to manage texture resources and their sampling configurations.
+                     */
+                    std::map<VkImageView, VkSampler> _textureImageViewsAndSamplers;
                 };
 
                 // Constructors
@@ -219,6 +212,8 @@ namespace maverik {
 
                 // Destructor
                 ~RenderingContext();
+
+                void init() override {};
 
             protected:
                 GLFWwindow *_window;                    // Pointer to the GLFW window
@@ -256,7 +251,7 @@ namespace maverik {
                 void setupDebugMessenger(VkInstance instance);
                 void createDescriptorSetLayout();
                 void createDescriptorPool();
-                void createDescriptorSets(VkImageView textureImageView, VkSampler textureSampler);
+                void createDescriptorSets(std::map<VkImageView, VkSampler> imagesViewsAndSamplers);
 
                 std::vector<VkCommandBuffer> _commandBuffers;           // Vector of Vulkan command buffers for rendering
 
@@ -276,6 +271,7 @@ namespace maverik {
 
             private:
                 VkSampleCountFlagBits getMaxUsableSampleCount();
+                void createSingleDescriptorSets(VkImageView textureImageView, VkSampler textureSampler);
 
         };
     }
