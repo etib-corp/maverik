@@ -23,8 +23,6 @@ namespace maverik {
             VkExtent2D _swapchainExtent;
             std::vector<VkFramebuffer> _swapchainFramebuffers;
 
-            VkRenderPass _renderPass;
-
             uint32_t _mipLevels;
 
 

@@ -9,6 +9,8 @@
 
 #include <vulkan.hpp>
 
+#include "vk/Utils.hpp"
+
 /**
  * @struct VulkanContext
  * @brief Represents the Vulkan rendering context, encapsulating essential Vulkan objects and configurations.
@@ -42,7 +44,6 @@ struct  VulkanContext{
     uint32_t graphicsQueueFamilyIndex;
 };
 
-
 namespace maverik {
     class ARenderingContext {
         public:
@@ -59,6 +60,121 @@ namespace maverik {
                 return _vulkanContext;
             }
 
+            /**
+             * @brief Creates a Vulkan render pass for the swapchain context.
+             *
+             * This function sets up a render pass with color, depth, and resolve attachments,
+             * supporting multisample anti-aliasing (MSAA) as specified by the msaaSamples parameter.
+             * The render pass is configured for use in a graphics pipeline, with appropriate
+             * subpass and dependency settings for color and depth outputs.
+             *
+             * @param physicalDevice The Vulkan physical device used to determine supported formats.
+             * @param logicalDevice The Vulkan logical device used to create the render pass.
+             * @param msaaSamples The number of samples per pixel for MSAA (multisample anti-aliasing).
+             *
+             * @throws std::runtime_error If the render pass creation fails.
+             */
+            void createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, VkSampleCountFlagBits msaaSamples)
+            {
+                auto swapchainSupport = maverik::vk::Utils::querySwapChainSupport(physicalDevice, surface);
+                auto swapchainFormat = this->chooseSwapSurfaceFormat(swapchainSupport.formats);
+
+                VkAttachmentDescription colorAttachment{};
+                colorAttachment.format = swapchainFormat.format;
+                colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                colorAttachment.samples = msaaSamples;
+                colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                VkAttachmentDescription depthAttachment{};
+                depthAttachment.format = maverik::vk::Utils::findDepthFormat(physicalDevice);
+                depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                depthAttachment.samples = msaaSamples;
+
+                VkAttachmentReference colorAttachmentRef{};
+                colorAttachmentRef.attachment = 0;
+                colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                VkAttachmentReference depthAttachmentRef{};
+                depthAttachmentRef.attachment = 1;
+                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+                VkAttachmentDescription colorAttachmentResolve{};
+                colorAttachmentResolve.format = swapchainFormat.format;
+                colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+                colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                VkAttachmentReference colorAttachmentResolveRef{};
+                colorAttachmentResolveRef.attachment = 2;
+                colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                VkSubpassDescription subpass{};
+                subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+                subpass.colorAttachmentCount = 1;
+                subpass.pColorAttachments = &colorAttachmentRef;
+                subpass.pDepthStencilAttachment = &depthAttachmentRef;
+                subpass.pResolveAttachments = &colorAttachmentResolveRef;
+
+                VkSubpassDependency dependency{};
+                dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+                dependency.dstSubpass = 0;
+                dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+                dependency.srcAccessMask = 0;
+                dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+                dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+                std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
+                VkRenderPassCreateInfo renderPassInfo{};
+                renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+                renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+                renderPassInfo.pAttachments = attachments.data();
+                renderPassInfo.subpassCount = 1;
+                renderPassInfo.pSubpasses = &subpass;
+                renderPassInfo.dependencyCount = 1;
+                renderPassInfo.pDependencies = &dependency;
+
+                if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS) {
+                    throw std::runtime_error("failed to create render pass!");
+                }
+            }
+
+        private:
+            /**
+             * @brief Chooses the most suitable surface format for the swapchain.
+             *
+             * This function iterates through the list of available surface formats and
+             * selects the one that best matches the desired format and color space.
+             * If the preferred format (VK_FORMAT_B8G8R8A8_SRGB) and color space
+             * (VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) are available, it returns that format.
+             * Otherwise, it defaults to the first available format in the list.
+             *
+             * @param availableFormats A vector of VkSurfaceFormatKHR structures representing
+             *                         the formats supported by the surface.
+             * @return VkSurfaceFormatKHR The chosen surface format.
+             */
+            VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+            {
+                for (const auto& availableFormat : availableFormats) {
+                    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                        return availableFormat;
+                    }
+                }
+                return availableFormats[0];
+            }
+
         protected:
             VkDevice _logicalDevice;
             VkPhysicalDevice _physicalDevice;
@@ -67,5 +183,7 @@ namespace maverik {
             VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
             std::shared_ptr<VulkanContext> _vulkanContext;
+
+            VkRenderPass _renderPass;
     };
 }

@@ -19,9 +19,6 @@ namespace maverik {
         public:
             virtual ~AGraphicalContext() = default;
 
-            virtual void init() = 0;
-            virtual void run() = 0;
-
             virtual std::vector<std::string> getInstanceExtensions() = 0;
 
             /**

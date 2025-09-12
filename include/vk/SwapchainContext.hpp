@@ -56,6 +56,10 @@ namespace maverik {
                      * @brief The Vulkan graphics queue used for rendering commands.
                      */
                     VkQueue _graphicsQueue;
+                    /*
+                     * @brief The Vulkan render pass used for rendering operations.
+                     */
+                    VkRenderPass _renderPass;
                 };
 
                 /**
@@ -125,15 +129,12 @@ namespace maverik {
                 VkDeviceMemory _colorImageMemory;
                 VkImageView _colorImageView;
 
-                // Render pass
-                void createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSampleCountFlagBits msaaSamples);
-
                 // Used to create the swapchain
                 void init(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window);
 
                 void cleanup(VkDevice logicalDevice);
 
-                void createFramebuffers(VkDevice logicalDevice);
+                void createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass);
 
             private:
                 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
