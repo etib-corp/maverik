@@ -12,6 +12,7 @@
 #include <vector>
 #include <set>
 #include <fstream>
+#include <optional>
 
 #include <vulkan/vulkan.h>
 
@@ -89,6 +90,8 @@ namespace maverik {
             static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 
             static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
+            static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+
             static uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
             static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice);
 
@@ -370,12 +373,15 @@ namespace maverik {
 
             static void copyBuffer(const CopyBufferProperties& properties);
 
+            static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDevice& physicalDevice);
+      
             static VkShaderModule createShaderModule(VkDevice logicalDevice, const std::vector<char>& code);
 
             static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo, PFN_vkDebugUtilsMessengerCallbackEXT debugCallback);
 
             static VkResult createDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 
+            static VkFormat findSupportedDepthFormat(VkPhysicalDevice physicalDevice);
             static VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice, uint32_t mipLevels);
 
         private:

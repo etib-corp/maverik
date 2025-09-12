@@ -43,6 +43,16 @@ namespace maverik {
                 return _instance;
             }
 
+            /**
+             * @brief Sets the swapchain context for the graphical context.
+             *
+             * @param swapchainContext A shared pointer to an ASwapchainContext instance
+             *                         that represents the swapchain context to be set.
+             */
+            virtual void setSwapchainContext(const std::shared_ptr<ASwapchainContext>& swapchainContext) {
+                _swapchainContext = swapchainContext;
+            }
+
         protected:
             virtual void createInstance() = 0;
 

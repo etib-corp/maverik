@@ -117,6 +117,40 @@ maverik::Utils::QueueFamilyIndices maverik::Utils::findQueueFamilies(VkPhysicalD
 }
 
 /**
+ * @brief Finds the queue families supported by a given Vulkan physical device.
+ *
+ * This function iterates through the queue families of the specified physical device
+ * and identifies the indices of queue families that support specific capabilities,
+ * such as graphics operations.
+ *
+ * @param device The Vulkan physical device to query for queue family properties.
+ * @return A QueueFamilyIndices structure containing the indices of the queue families
+ *         that meet the required criteria. If no suitable queue families are found,
+ *         the indices will remain unset.
+ */
+maverik::Utils::QueueFamilyIndices maverik::Utils::findQueueFamilies(VkPhysicalDevice device)
+{
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+            break;
+        }
+        i++;
+    }
+
+    return indices;
+}
+
+/**
 * @brief Finds a suitable memory type for a Vulkan resource.
 *
 * This function searches through the memory types available on the given physical device
@@ -127,7 +161,7 @@ maverik::Utils::QueueFamilyIndices maverik::Utils::findQueueFamilies(VkPhysicalD
 * @param typeFilter A bitmask specifying the acceptable memory types. Each bit represents
 *                   a memory type, and the function will check which types are suitable.
 * @param properties A set of memory property flags that the desired memory type must have.
-*                   For example, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or 
+*                   For example, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or
 *                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.
 * @return The index of a suitable memory type.
 * @throws std::runtime_error If no suitable memory type is found.
@@ -402,7 +436,7 @@ void maverik::Utils::createBuffer(const CreateBufferProperties& properties)
 /**
  * @brief Copies data from a Vulkan buffer to a Vulkan image.
  *
- * This function is used to transfer data from a buffer to an image in Vulkan. 
+ * This function is used to transfer data from a buffer to an image in Vulkan.
  * It is typically used for uploading texture data to a GPU image resource.
  *
  * @param logicalDevice The Vulkan logical device used for the operation.
@@ -546,8 +580,8 @@ void maverik::Utils::generateMipmaps(const GenerateMipmapsProperties& properties
 /**
  * @brief Copies data from one Vulkan buffer to another.
  *
- * This function performs a buffer-to-buffer copy operation using a single-time 
- * command buffer. It is useful for transferring data between buffers, such as 
+ * This function performs a buffer-to-buffer copy operation using a single-time
+ * command buffer. It is useful for transferring data between buffers, such as
  * staging buffer to a device-local buffer.
  *
  * @param logicalDevice The Vulkan logical device used to allocate and manage resources.
@@ -566,6 +600,33 @@ void maverik::Utils::copyBuffer(const CopyBufferProperties& properties)
     vkCmdCopyBuffer(commandBuffer, properties._srcBuffer, properties._dstBuffer, 1, &copyRegion);
 
     Utils::endSingleTimeCommands(properties._logicalDevice, properties._commandPool, properties._graphicsQueue, commandBuffer);
+}
+
+/**
+ * @brief Determines the maximum usable sample count for multisampling supported by the given physical device.
+ *
+ * This function queries the physical device properties and calculates the highest sample count
+ * that is supported for both color and depth framebuffers. It returns the largest VkSampleCountFlagBits
+ * value that is supported by the device, which can be used for configuring multisampling in Vulkan.
+ *
+ * @param physicalDevice The Vulkan physical device to query for sample count capabilities.
+ * @return VkSampleCountFlagBits The maximum supported sample count for both color and depth framebuffers.
+ */
+VkSampleCountFlagBits maverik::Utils::getMaxUsableSampleCount(const VkPhysicalDevice& physicalDevice)
+{
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+    if (counts & VK_SAMPLE_COUNT_64_BIT) return VK_SAMPLE_COUNT_64_BIT;
+    if (counts & VK_SAMPLE_COUNT_32_BIT) return VK_SAMPLE_COUNT_32_BIT;
+    if (counts & VK_SAMPLE_COUNT_16_BIT) return VK_SAMPLE_COUNT_16_BIT;
+    if (counts & VK_SAMPLE_COUNT_8_BIT) return VK_SAMPLE_COUNT_8_BIT;
+    if (counts & VK_SAMPLE_COUNT_4_BIT) return VK_SAMPLE_COUNT_4_BIT;
+    if (counts & VK_SAMPLE_COUNT_2_BIT) return VK_SAMPLE_COUNT_2_BIT;
+
+    return VK_SAMPLE_COUNT_1_BIT;
 }
 
 /**
@@ -648,6 +709,40 @@ VkResult maverik::Utils::createDebugUtilsMessengerEXT(VkInstance instance, const
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 }
+
+/**
+ * @brief Finds and returns a supported depth/stencil format for the given physical device.
+ *
+ * This function iterates through a list of candidate VkFormat values and checks if each format
+ * supports usage as a depth/stencil attachment with the specified image tiling (optimal).
+ * It queries the format properties of the physical device and returns the first format that
+ * meets the required features.
+ *
+ * @param physicalDevice The Vulkan physical device to query for supported formats.
+ * @return VkFormat The first supported format suitable for depth/stencil attachment.
+ * @throws std::runtime_error If no suitable format is found.
+ */
+VkFormat maverik::Utils::findSupportedDepthFormat(VkPhysicalDevice physicalDevice)
+{
+    const std::vector<VkFormat> candidates = {
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT
+    };
+    VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
+    VkFormatFeatureFlags features = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+    for (auto format : candidates) {
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+            return format;
+        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
+    }
+    throw std::runtime_error("failed to find supported format!");
 
 /**
  * @brief Creates a Vulkan image view for a given image.
