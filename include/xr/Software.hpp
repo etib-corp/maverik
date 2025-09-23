@@ -19,9 +19,21 @@ namespace maverik {
     namespace xr {
         class Software : public ASoftware {
             public:
+
+                /**
+                 * @brief Constructor for the Software class.
+                 *
+                 * Initializes the Software instance with the provided platform data.
+                 * Creates an AndroidPlatform instance using the given platform data and sets it as the platform.
+                 * The graphical context is initialized to nullptr.
+                 *
+                 * @param platformData A shared pointer to the PlatformData object containing platform-specific information.
+                 */
                 Software(const std::shared_ptr<PlatformData> &platformData);
                 ~Software();
 
+
+                protected:
                 /**
                  * @brief Creates an OpenXR instance, initializes the graphical context, and sets up an XR session.
                  *
@@ -39,7 +51,10 @@ namespace maverik {
                  */
                 void createInstance();
 
-            protected:
+                void initializeSystem();
+
+                void initializeSession();
+
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
                 XrSession _XRsession = XR_NULL_HANDLE;

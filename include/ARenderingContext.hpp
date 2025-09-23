@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vulkan.hpp>
+#include <memory>
 
 #include "Utils.hpp"
 
@@ -176,6 +177,19 @@ namespace maverik {
             }
 
         protected:
+
+            virtual void pickPhysicalDevice(VkInstance instance) = 0;
+
+            virtual void createLogicalDevice() = 0;
+
+            virtual void createCommandPool() = 0;
+
+            virtual void createRenderPass() = 0;
+
+            virtual void createGraphicsPipeline(VkRenderPass renderPass) = 0;
+
+            VkSampleCountFlagBits getMaxUsableSampleCount() const;
+
             VkDevice _logicalDevice;
             VkPhysicalDevice _physicalDevice;
             VkQueue _graphicsQueue;
