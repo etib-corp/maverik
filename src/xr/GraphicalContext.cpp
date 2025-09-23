@@ -7,33 +7,17 @@
 
 #include "xr/GraphicalContext.hpp"
 
-maverik::xr::GraphicalContext::GraphicalContext(XrInstance instance, XrSystemId systemID)
-    : _XRinstance(instance), _XRsystemID(systemID)
+maverik::xr::GraphicalContext::GraphicalContext(const GraphicalContextPropertiesXR &properties)
+    : _XRinstance(properties._XRinstance), _XRsystemID(properties._XRsystemID)
 {
-    _renderingContext = nullptr;
+    init();
 }
 
 maverik::xr::GraphicalContext::~GraphicalContext()
 {
 }
 
-
 void maverik::xr::GraphicalContext::init()
-{
-    createInstance();
-}
-
-void maverik::xr::GraphicalContext::run()
-{
-}
-
-std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
-{
-    return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
-}
-
-
-void maverik::xr::GraphicalContext::createInstance()
 {
     XrGraphicsRequirementsVulkan2KHR graphicsRequirements{};
     PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
@@ -86,7 +70,7 @@ void maverik::xr::GraphicalContext::createInstance()
     vkInstanceCreateInfo.vulkanAllocator = nullptr;
 
     VkResult result = VK_SUCCESS;
-    if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &_instance,&result) != XR_SUCCESS) {
+    if (xrCreateVulkanInstanceKHR(_XRinstance, &vkInstanceCreateInfo, &_instance, &result) != XR_SUCCESS) {
         std::cerr << "Failed to create Vulkan instance" << std::endl;
         return;
     }
@@ -95,6 +79,14 @@ void maverik::xr::GraphicalContext::createInstance()
         return;
     }
 
-    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_XRinstance, _instance, _XRsystemID);
-    _renderingContext->init();
+    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_instance, graphicsRequirements);
+}
+
+void maverik::xr::GraphicalContext::run()
+{
+}
+
+std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
+{
+    return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
 }

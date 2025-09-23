@@ -19,9 +19,6 @@ namespace maverik {
         public:
             virtual ~AGraphicalContext() = default;
 
-            virtual void init() = 0;
-            virtual void run() = 0;
-
             virtual std::vector<std::string> getInstanceExtensions() = 0;
 
             /**
@@ -44,6 +41,16 @@ namespace maverik {
              */
             const VkInstance& getInstance() const {
                 return _instance;
+            }
+
+            /**
+             * @brief Sets the swapchain context for the graphical context.
+             *
+             * @param swapchainContext A shared pointer to an ASwapchainContext instance
+             *                         that represents the swapchain context to be set.
+             */
+            virtual void setSwapchainContext(const std::shared_ptr<ASwapchainContext>& swapchainContext) {
+                _swapchainContext = swapchainContext;
             }
 
         protected:

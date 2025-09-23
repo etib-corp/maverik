@@ -7,7 +7,7 @@
 
 #pragma once
 
-    #include <vulkan/vulkan.h>
+    #include <vulkan/vulkan.hpp>
 
 #ifdef _WIN32
     #define VK_USE_PLATFORM_WIN32_KHR
@@ -29,5 +29,7 @@
 
     #include <GLFW/glfw3native.h>
 
-    #define XIDER_VK_IMPLEMENTATION
-    // #define XIDER_XR_IMPLEMENTATION
+    // #define XIDER_VK_IMPLEMENTATION
+    #define XIDER_XR_IMPLEMENTATION
+
+    #include <openxr/openxr.h>
