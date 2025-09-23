@@ -55,9 +55,6 @@ namespace maverik {
                 // Destructor
                 ~GraphicalContext();
 
-                void init() override;
-                void run() override;
-
                 std::vector<std::string> getInstanceExtensions() override;
 
                 void createInstance() override;
