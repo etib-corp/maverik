@@ -174,10 +174,22 @@ void maverik::xr::SwapChainImage::createColorResources()
         0,
         1
     };
+
     if (vkCreateImageView(_device, &viewInfo, nullptr, &_colorImageView) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create image view");
     }
-    // create the transition image view
+
+    Utils::TransitionImageLayoutProperties transitionProperties = {
+        ._logicalDevice = _device,
+        ._commandPool = VK_NULL_HANDLE, // Set your command pool here
+        ._graphicsQueue = VK_NULL_HANDLE, // Set your graphics queue here
+        ._image = _colorImage,
+        ._format = _swapchainImageFormat,
+        ._oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        ._newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        ._mipLevels = 1
+    };
+    Utils::transitionImageLayout(transitionProperties);
 }
 
 void maverik::xr::SwapChainImage::createDepthResources()
@@ -214,6 +226,18 @@ void maverik::xr::SwapChainImage::createDepthResources()
         throw std::runtime_error("Failed to create image view");
     }
 
+    Utils::TransitionImageLayoutProperties transitionProperties = {
+        ._logicalDevice = _device,
+        ._commandPool = VK_NULL_HANDLE, // Set your command pool here
+        ._graphicsQueue = VK_NULL_HANDLE, // Set your graphics queue here
+        ._image = _depthImage,
+        ._format = depthFormat,
+        ._oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        ._newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        ._mipLevels = 1
+    };
+    Utils::transitionImageLayout(transitionProperties);
+
 }
 
 void maverik::xr::SwapChainImage::createFrameBuffers()
@@ -238,4 +262,16 @@ void maverik::xr::SwapChainImage::createFrameBuffers()
             throw std::runtime_error("Failed to create framebuffer");
         }
     }
+
+    Utils::TransitionImageLayoutProperties transitionProperties = {
+        ._logicalDevice = _device,
+        ._commandPool = VK_NULL_HANDLE, // Set your command pool here
+        ._graphicsQueue = VK_NULL_HANDLE, // Set your graphics queue here
+        ._image = _colorImage,
+        ._format = _swapchainImageFormat,
+        ._oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        ._newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        ._mipLevels = 1
+    };
+    Utils::transitionImageLayout(transitionProperties);
 }
