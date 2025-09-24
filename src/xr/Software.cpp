@@ -20,7 +20,7 @@ maverik::xr::Software::Software(const std::shared_ptr<PlatformData> &platformDat
     properties._XRsystemID = _XRsystemID;
     _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(properties);
     initializeSession();
-
+    createVisualizedSpace();
 }
 
 maverik::xr::Software::~Software()
@@ -99,4 +99,19 @@ void maverik::xr::Software::initializeSession()
         std::cerr << "Failed to create XR session" << std::endl;
         return;
     }
+}
+
+void maverik::xr::Software::createVisualizedSpace()
+{
+    XrReferenceSpaceCreateInfo spaceCreateInfo{};
+    spaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
+    spaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
+    spaceCreateInfo.poseInReferenceSpace = { {0, 0, 0, 1}, {0, 0, 0} };
+
+    XrSpace space;
+    if (xrCreateReferenceSpace(_XRsession, &spaceCreateInfo, &space) != XR_SUCCESS) {
+        std::cerr << "Failed to create reference space" << std::endl;
+        return;
+    }
+    _XRvisualizedSpaces.push_back(space);
 }
