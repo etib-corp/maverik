@@ -40,8 +40,7 @@ namespace maverik {
                 GraphicalContext(const GraphicalContextPropertiesXR &properties);
                 ~GraphicalContext();
 
-                void init() override;
-                void run() override;
+                void init();
 
                 std::vector<std::string> getInstanceExtensions() override;
 

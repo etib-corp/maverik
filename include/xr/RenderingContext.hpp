@@ -29,14 +29,6 @@ namespace maverik {
 
                 void init() override;
 
-                void pickPhysicalDevice();
-
-                void createLogicalDevice();
-
-                void createGraphicsPipeline(VkRenderPass renderPass);
-
-                void createCommandPool();
-
             protected:
 
                 void pickPhysicalDevice(VkInstance instance) override;

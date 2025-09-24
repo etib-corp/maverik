@@ -82,10 +82,6 @@ void maverik::xr::GraphicalContext::init()
     _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_instance, graphicsRequirements);
 }
 
-void maverik::xr::GraphicalContext::run()
-{
-}
-
 std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
 {
     return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
