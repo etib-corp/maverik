@@ -275,3 +275,11 @@ void maverik::xr::SwapChainImage::createFrameBuffers()
     };
     Utils::transitionImageLayout(transitionProperties);
 }
+
+XrSwapchainImageBaseHeader *maverik::xr::SwapChainImage::getFirstImagePointer()
+{
+    if (_swapchainImages.empty()) {
+        return nullptr;
+    }
+    return reinterpret_cast<XrSwapchainImageBaseHeader*>(&_swapchainImages[0]);
+}

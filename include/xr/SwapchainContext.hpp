@@ -78,7 +78,7 @@ namespace maverik {
 
             void init(const SwapchainImageCreationPropertiesXR& properties);
 
-            // XrSwapchainImageBaseHeader *getFirstImagePointer();
+            XrSwapchainImageBaseHeader *getFirstImagePointer();
 
             bool _initialized = false;
         };
