@@ -10,14 +10,14 @@
 maverik::xr::GraphicalContext::GraphicalContext(const GraphicalContextPropertiesXR &properties)
     : _XRinstance(properties._XRinstance), _XRsystemID(properties._XRsystemID)
 {
-    init();
+    createInstance();
 }
 
 maverik::xr::GraphicalContext::~GraphicalContext()
 {
 }
 
-void maverik::xr::GraphicalContext::init()
+void maverik::xr::GraphicalContext::createInstance()
 {
     XrGraphicsRequirementsVulkan2KHR graphicsRequirements{};
     PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
