@@ -9,6 +9,7 @@
 
 #include "maverik.hpp"
 #include <memory>
+#include <array>
 
 #include "Utils.hpp"
 

@@ -79,7 +79,12 @@ void maverik::xr::GraphicalContext::createInstance()
         return;
     }
 
-    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_instance, graphicsRequirements);
+    RenderingContextPropertiesXR renderingProperties{};
+    renderingProperties._XRinstance = _XRinstance;
+    renderingProperties._XRsystemID = _XRsystemID;
+    renderingProperties._vulkanInstance = _instance;
+
+    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(renderingProperties);
 }
 
 std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()
