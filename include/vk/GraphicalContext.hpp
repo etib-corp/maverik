@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "AGraphicalContext.hpp"
+#include "vk/RenderingContext.hpp"
 
 #include "Version.hpp"
 
@@ -49,7 +50,7 @@ namespace maverik {
 
                 // Constructors
                 GraphicalContext();
-                GraphicalContext(const std::string &appName, const Version &appVersion, const std::string &engineName, const Version &engineVersion);
+                GraphicalContext(const std::string &appName, const Version &appVersion, const std::string &engineName, const Version &engineVersion, unsigned int windowWidth = 800, unsigned int windowHeight = 600);
                 GraphicalContext(const GraphicalContext &other) = delete; // Copy constructor
 
                 // Destructor

@@ -33,6 +33,19 @@ maverik::vk::GraphicalContext::GraphicalContext()
     _appVersion = new Version(1, 0, 0);
     _engineName = "Maverik";
     _engineVersion = new Version(1, 0, 0);
+
+    this->createInstance();
+
+    maverik::vk::RenderingContext::RenderingContextProperties renderingContextProperties = {
+        ._instance = _instance,
+        ._textureImageViewsAndSamplers = {}
+    };
+    maverik::vk::RenderingContext::WindowProperties windowProperties = {
+        .width = 800,
+        .height = 600,
+        .title = _appName
+    };
+    _renderingContext = std::make_shared<maverik::vk::RenderingContext>(windowProperties, renderingContextProperties);
 }
 
 /*
@@ -47,12 +60,25 @@ maverik::vk::GraphicalContext::GraphicalContext()
 ** @param engineVersion the engine version
 **
 */
-maverik::vk::GraphicalContext::GraphicalContext(const std::string &appName, const Version &appVersion, const std::string &engineName, const Version &engineVersion)
+maverik::vk::GraphicalContext::GraphicalContext(const std::string &appName, const Version &appVersion, const std::string &engineName, const Version &engineVersion, unsigned int windowWidth = 800, unsigned int windowHeight = 600)
 {
     _appName = appName;
     _appVersion = new Version(appVersion);
     _engineName = engineName;
     _engineVersion = new Version(engineVersion);
+
+    this->createInstance();
+
+        maverik::vk::RenderingContext::RenderingContextProperties renderingContextProperties = {
+        ._instance = _instance,
+        ._textureImageViewsAndSamplers = {}
+    };
+    maverik::vk::RenderingContext::WindowProperties windowProperties = {
+        .width = 800,
+        .height = 600,
+        .title = _appName
+    };
+    _renderingContext = std::make_shared<maverik::vk::RenderingContext>(windowProperties, renderingContextProperties);
 }
 
 /*

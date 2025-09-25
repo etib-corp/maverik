@@ -56,7 +56,8 @@ maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowPr
     this->pickPhysicalDevice(renderingContextProperties._instance);
     this->createLogicalDevice();
     this->createDescriptorSetLayout();
-    this->createGraphicsPipeline(renderingContextProperties._renderPass);
+    this->createRenderPass(_physicalDevice, _logicalDevice, _surface, _msaaSamples);
+    this->createGraphicsPipeline(_renderPass);
     this->createCommandPool();
     this->createVertexBuffer();
     this->createIndexBuffer();

@@ -187,16 +187,6 @@ namespace maverik {
                      *
                     */
                     VkInstance _instance;
-                    /*
-                     * @brief Vulkan render pass used for rendering operations.
-                     *
-                     * This member holds the Vulkan render pass that defines the
-                     * framebuffer attachments and their formats. It is used to manage
-                     * the rendering process and how the images are presented.
-                     *
-                    */
-                    VkRenderPass _renderPass;
-
                     /**
                      * @brief Associates Vulkan image views with their corresponding samplers.
                      *
