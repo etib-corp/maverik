@@ -299,7 +299,7 @@ void maverik::Utils::transitionImageLayout(const TransitionImageLayoutProperties
     barrier.newLayout = properties._newLayout;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = properties._image;  
+    barrier.image = properties._image;
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
@@ -743,6 +743,7 @@ VkFormat maverik::Utils::findSupportedDepthFormat(VkPhysicalDevice physicalDevic
         }
     }
     throw std::runtime_error("failed to find supported format!");
+}
 
 /**
  * @brief Creates a Vulkan image view for a given image.
@@ -753,7 +754,7 @@ VkFormat maverik::Utils::findSupportedDepthFormat(VkPhysicalDevice physicalDevic
  *
  * @param image The Vulkan image for which the image view is created.
  * @param format The format of the image view (e.g., VK_FORMAT_R8G8B8A8_SRGB).
- * @param aspectFlags Specifies which aspect(s) of the image are included in the view 
+ * @param aspectFlags Specifies which aspect(s) of the image are included in the view
  *                    (e.g., VK_IMAGE_ASPECT_COLOR_BIT for color images).
  * @param logicalDevice The Vulkan logical device used to create the image view.
  *
@@ -761,6 +762,7 @@ VkFormat maverik::Utils::findSupportedDepthFormat(VkPhysicalDevice physicalDevic
  *
  * @throws std::runtime_error If the image view creation fails.
  */
+
 VkImageView maverik::Utils::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice, uint32_t mipLevels)
 {
     VkImageViewCreateInfo viewInfo{};

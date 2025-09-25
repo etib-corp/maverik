@@ -33,7 +33,7 @@ namespace maverik {
                 ~Software();
 
 
-                protected:
+            protected:
                 /**
                  * @brief Creates an OpenXR instance, initializes the graphical context, and sets up an XR session.
                  *
