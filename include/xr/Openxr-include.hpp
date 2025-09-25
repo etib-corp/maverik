@@ -11,6 +11,7 @@
 #define XR_USE_GRAPHICS_API_VULKAN
 #define VK_USE_PLATFORM_ANDROID_KHR
 
+#include "maverik.hpp"
 
 #include <openxr/openxr.h>
 #include <jni.h>
@@ -20,6 +21,3 @@
 #include <iostream>
 #include <map>
 #include <memory>
-
-#define XIDER_XR_IMPLEMENTATION
-
