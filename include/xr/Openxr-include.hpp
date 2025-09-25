@@ -11,13 +11,15 @@
 #define XR_USE_GRAPHICS_API_VULKAN
 #define VK_USE_PLATFORM_ANDROID_KHR
 
-#include "vulkan.hpp"
 
 #include <openxr/openxr.h>
-// #include <jni.h>
+#include <jni.h>
 #include <vulkan/vulkan.h>
 #include <openxr/openxr_platform.h>
 
 #include <iostream>
 #include <map>
 #include <memory>
+
+#define XIDER_XR_IMPLEMENTATION
+

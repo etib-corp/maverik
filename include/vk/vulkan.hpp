@@ -31,9 +31,3 @@
     #include <GLFW/glfw3native.h>
 
 #endif
-
-#define XIDER_XR_IMPLEMENTATION
-
-#ifdef __ANDROID__
-    #include <openxr/openxr.h>
-#endif
