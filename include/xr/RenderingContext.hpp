@@ -37,17 +37,11 @@ namespace maverik {
 
                 void createCommandPool() override;
 
-                void createRenderPass() override;
-
-                void createGraphicsPipeline(VkRenderPass renderPass) override;
-
             private:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
                 VkInstance _vulkanInstance = VK_NULL_HANDLE;
 
-                VkPipelineLayout _pipelineLayout;       // Vulkan pipeline layout
-                VkPipeline _graphicsPipeline;           // Vulkan graphics pipeline
         };
     }
 }

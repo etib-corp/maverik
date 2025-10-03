@@ -19,7 +19,6 @@ maverik::xr::Software::Software(const std::shared_ptr<PlatformData> &platformDat
     properties._XRinstance = _XRinstance;
     properties._XRsystemID = _XRsystemID;
     _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(properties);
-    initializeSession();
     createVisualizedSpace();
 }
 
@@ -68,50 +67,4 @@ void maverik::xr::Software::initializeSystem()
         std::cerr << "Failed to get XR system ID" << std::endl;
         return;
     }
-}
-
-void maverik::xr::Software::initializeSession()
-{
-    if (_XRsession != XR_NULL_HANDLE)
-        return;
-
-    std::shared_ptr<VulkanContext> vulkanContext = _graphicalContext->getVulkanContext();
-    if (vulkanContext == nullptr) {
-        std::cerr << "Failed to get Vulkan context" << std::endl;
-        return;
-    }
-
-    XrGraphicsBindingVulkan2KHR graphicsBinding{};
-
-    graphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
-    graphicsBinding.next = nullptr;
-    graphicsBinding.instance = _graphicalContext->getInstance();
-    graphicsBinding.device = vulkanContext->logicalDevice;
-    graphicsBinding.queueFamilyIndex = vulkanContext->graphicsQueueFamilyIndex;
-    graphicsBinding.queueIndex = 0;
-
-    XrSessionCreateInfo sessionCreateInfo{};
-    sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
-    sessionCreateInfo.next = &graphicsBinding;
-    sessionCreateInfo.systemId = _XRsystemID;
-
-    if (xrCreateSession(_XRinstance, &sessionCreateInfo, &_XRsession) != XR_SUCCESS) {
-        std::cerr << "Failed to create XR session" << std::endl;
-        return;
-    }
-}
-
-void maverik::xr::Software::createVisualizedSpace()
-{
-    XrReferenceSpaceCreateInfo spaceCreateInfo{};
-    spaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
-    spaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-    spaceCreateInfo.poseInReferenceSpace = { {0, 0, 0, 1}, {0, 0, 0} };
-
-    XrSpace space;
-    if (xrCreateReferenceSpace(_XRsession, &spaceCreateInfo, &space) != XR_SUCCESS) {
-        std::cerr << "Failed to create reference space" << std::endl;
-        return;
-    }
-    _XRvisualizedSpaces.push_back(space);
 }

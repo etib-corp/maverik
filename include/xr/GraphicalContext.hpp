@@ -46,10 +46,17 @@ namespace maverik {
             protected:
                 void createInstance() override;
 
+                void initializeSession();
+
+                void createVisualizedSpace();
 
             private:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
+                XrSession _XRsession = XR_NULL_HANDLE;
+
+                std::vector<XrSpace> _XRvisualizedSpaces;
+
         };
     }
 }

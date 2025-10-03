@@ -22,6 +22,11 @@ namespace maverik {
             }
 
         protected:
+
+            virtual void createRenderPass() = 0;
+
+            virtual void createGraphicsPipeline() = 0;
+
             std::vector<VkImageView> _imageViews;
             VkFormat _swapchainFormat;
             VkExtent2D _swapchainExtent;
@@ -29,7 +34,12 @@ namespace maverik {
 
             uint32_t _mipLevels;
 
-            uint64_t _swapchainColorFormat = 0;
+            VkFormat _swapchainColorFormat = VK_FORMAT_UNDEFINED;
+
+            VkRenderPass _renderPass = VK_NULL_HANDLE;
+
+            VkPipelineLayout _pipelineLayout;       // Vulkan pipeline layout
+            VkPipeline _graphicsPipeline;           // Vulkan graphics pipeline
 
             #if defined(XIDER_VK_IMPLEMENTATION)
                 ASwapchain<VkSwapchainKHR> _swapchain;

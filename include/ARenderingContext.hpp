@@ -44,6 +44,7 @@ struct  VulkanContext{
     VkRenderPass renderPass;
     VkCommandPool commandPool;
     uint32_t graphicsQueueFamilyIndex;
+    VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 };
 
 namespace maverik {
@@ -186,8 +187,6 @@ namespace maverik {
             virtual void createCommandPool() = 0;
 
             virtual void createRenderPass() = 0;
-
-            virtual void createGraphicsPipeline(VkRenderPass renderPass) = 0;
 
             VkSampleCountFlagBits getMaxUsableSampleCount() const;
 
