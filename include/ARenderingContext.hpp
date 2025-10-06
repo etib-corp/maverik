@@ -62,7 +62,7 @@ namespace maverik {
             }
 
             /**
-             * @brief Creates a Vulkan render pass for the swapchain context.
+             * @brief Creates a Vulkan render pass for the rendering context.
              *
              * This function sets up a render pass with color, depth, and resolve attachments,
              * supporting multisample anti-aliasing (MSAA) as specified by the msaaSamples parameter.
@@ -75,9 +75,9 @@ namespace maverik {
              *
              * @throws std::runtime_error If the render pass creation fails.
              */
-            void createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, VkSampleCountFlagBits msaaSamples)
+            void createRenderPass(VkSurfaceKHR surface)
             {
-                auto swapchainSupport = maverik::Utils::querySwapChainSupport(physicalDevice, surface);
+                auto swapchainSupport = maverik::Utils::querySwapChainSupport(_physicalDevice, surface);
                 auto swapchainFormat = this->chooseSwapSurfaceFormat(swapchainSupport.formats);
 
                 VkAttachmentDescription colorAttachment{};
@@ -87,18 +87,18 @@ namespace maverik {
                 colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                colorAttachment.samples = msaaSamples;
+                colorAttachment.samples = _msaaSamples;
                 colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
                 VkAttachmentDescription depthAttachment{};
-                depthAttachment.format = maverik::Utils::findDepthFormat(physicalDevice);
+                depthAttachment.format = maverik::Utils::findDepthFormat(_physicalDevice);
                 depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                 depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-                depthAttachment.samples = msaaSamples;
+                depthAttachment.samples = _msaaSamples;
 
                 VkAttachmentReference colorAttachmentRef{};
                 colorAttachmentRef.attachment = 0;
@@ -147,7 +147,7 @@ namespace maverik {
                 renderPassInfo.dependencyCount = 1;
                 renderPassInfo.pDependencies = &dependency;
 
-                if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS) {
+                if (vkCreateRenderPass(_logicalDevice, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS) {
                     throw std::runtime_error("failed to create render pass!");
                 }
             }
@@ -183,10 +183,6 @@ namespace maverik {
             virtual void createLogicalDevice() = 0;
 
             virtual void createCommandPool() = 0;
-
-            virtual void createRenderPass() = 0;
-
-            virtual void createGraphicsPipeline(VkRenderPass renderPass) = 0;
 
             VkSampleCountFlagBits getMaxUsableSampleCount() const;
 
