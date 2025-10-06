@@ -10,9 +10,15 @@
 
     #include "ASwapchainContext.hpp"
 
+    #include "Vertex.hpp"
+
     #include "Utils.hpp"
 
     #include <map>
+
+    #ifndef MAX_FRAMES_IN_FLIGHT
+        #define MAX_FRAMES_IN_FLIGHT 2
+    #endif
 
 namespace maverik {
     namespace vk {
@@ -60,6 +66,10 @@ namespace maverik {
                      * @brief The Vulkan render pass used for rendering operations.
                      */
                     VkRenderPass _renderPass;
+                    /*
+                     * @brief The Vulkan instance associated with the swapchain context.
+                     */
+                    VkInstance _instance;
                 };
 
                 /**
@@ -92,6 +102,20 @@ namespace maverik {
                      * @brief The Vulkan graphics queue used for rendering operations.
                      */
                     VkQueue _graphicsQueue;
+                };
+
+                /**
+                 * @brief Uniform buffer object structure.
+                 *
+                 * This structure represents the data that will be passed to the vertex
+                 * shader as a uniform buffer. It contains the model, view, and projection
+                 * matrices used for rendering.
+                 *
+                 */
+                struct UniformBufferObject {
+                    glm::mat4 model;    // Model matrix
+                    glm::mat4 view;     // View matrix
+                    glm::mat4 proj;     // Projection matrix
                 };
 
                 // Contructors
@@ -136,6 +160,27 @@ namespace maverik {
 
                 void createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass);
 
+                VkPipelineLayout _pipelineLayout;       // Vulkan pipeline layout
+                VkPipeline _graphicsPipeline;           // Vulkan graphics pipeline
+
+                void createGraphicsPipeline(VkRenderPass renderPass, VkDevice logicalDevice, VkSampleCountFlagBits msaaSamples);
+
+                VkDescriptorPool _descriptorPool;                       // Vulkan descriptor pool for managing descriptor sets
+                std::vector<VkDescriptorSet> _descriptorSets;           // Vector of Vulkan descriptor sets for uniform data
+                VkDescriptorSetLayout _descriptorSetLayout;             // Vulkan descriptor set layout for uniform data
+                VkDebugUtilsMessengerEXT _debugMessenger;               // Vulkan debug messenger for validation layers
+
+                void setupDebugMessenger(VkInstance instance);
+                void createDescriptorSetLayout(VkDevice logicalDevice);
+                void createDescriptorPool(VkDevice logicalDevice);
+                void createDescriptorSets(VkDevice logicalDevice, std::map<VkImageView, VkSampler> imagesViewsAndSamplers);
+
+                std::vector<VkBuffer> _uniformBuffers;                  // Vector of Vulkan buffers for uniform data
+                std::vector<VkDeviceMemory> _uniformBuffersMemory;      // Vector of Vulkan memory for uniform buffers
+                std::vector<void*> _uniformBuffersMapped;               // Vector of mapped pointers to uniform buffer data
+
+                void createUniformBuffers(VkDevice logicalDevice, VkPhysicalDevice physicalDevice);
+
             private:
                 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
                 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -147,6 +192,8 @@ namespace maverik {
                 VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
 
                 VkSamplerCreateInfo getDefaultSamplerInfo(const VkPhysicalDeviceProperties& properties);
+
+                void createSingleDescriptorSets(VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler);
 
         };
     }
