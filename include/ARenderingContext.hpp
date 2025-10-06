@@ -92,7 +92,7 @@ namespace maverik {
 
             virtual void createLogicalDevice() = 0;
 
-            virtual void createCommandPool() = 0;
+            virtual void createCommandPool();
 
             VkSampleCountFlagBits getMaxUsableSampleCount() const;
 

@@ -35,8 +35,6 @@ namespace maverik {
 
                 void createLogicalDevice() override;
 
-                void createCommandPool() override;
-
             private:
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;

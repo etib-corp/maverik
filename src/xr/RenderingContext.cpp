@@ -122,27 +122,3 @@ void maverik::xr::RenderingContext::createLogicalDevice()
 
     vkGetDeviceQueue(_logicalDevice, queueCreateInfo.queueFamilyIndex, 0, &_graphicsQueue);
 }
-
-void maverik::xr::RenderingContext::createCommandPool()
-{
-    if (_logicalDevice == VK_NULL_HANDLE) {
-        std::cerr << "Logical device is not initialized" << std::endl;
-        return;
-    }
-
-    if (_commandPool != VK_NULL_HANDLE) {
-        return;
-    }
-
-    Utils::QueueFamilyIndices queueCreateInfo = Utils::findQueueFamilies(_physicalDevice);
-
-    VkCommandPoolCreateInfo commandPoolCreateInfo{};
-    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolCreateInfo.queueFamilyIndex = queueCreateInfo.graphicsFamily.value();
-    commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-    if (vkCreateCommandPool(_logicalDevice, &commandPoolCreateInfo, nullptr, &_commandPool) != VK_SUCCESS) {
-        std::cerr << "Failed to create Vulkan command pool" << std::endl;
-        return;
-    }
-}
