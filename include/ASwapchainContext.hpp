@@ -29,7 +29,6 @@ namespace maverik {
             virtual void createGraphicsPipeline() = 0;
 
             std::vector<VkImageView> _imageViews;
-            VkFormat _swapchainFormat;
             VkExtent2D _swapchainExtent;
             std::vector<VkFramebuffer> _swapchainFramebuffers;
 

@@ -41,7 +41,7 @@ VkFormat maverik::xr::SwapchainContext::selectSwapchainFormat(const std::vector<
         std::cerr << "SwapchainContext: No preferred swapchain format found, using first available format" << std::endl;
         return static_cast<VkFormat>(swapchainFormats[0]);
     }
-    return *swapchainFormatIt;
+    return static_cast<VkFormat>(*swapchainFormatIt);
 }
 
 void maverik::xr::SwapchainContext::init()

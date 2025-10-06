@@ -101,7 +101,7 @@ namespace maverik {
             protected:
                 void init();
 
-                void initSwapchainImages();
+                // void initSwapchainImages();
 
                 VkFormat selectSwapchainFormat(const std::vector<int64_t> &swapchainFormats);
 
