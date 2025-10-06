@@ -19,7 +19,6 @@ maverik::xr::Software::Software(const std::shared_ptr<PlatformData> &platformDat
     properties._XRinstance = _XRinstance;
     properties._XRsystemID = _XRsystemID;
     _graphicalContext = std::make_shared<maverik::xr::GraphicalContext>(properties);
-    createVisualizedSpace();
 }
 
 maverik::xr::Software::~Software()

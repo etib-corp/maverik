@@ -53,8 +53,6 @@ namespace maverik {
 
                 void initializeSystem();
 
-                void createVisualizedSpace();
-
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
                 std::shared_ptr<AndroidPlatform> _platform;
