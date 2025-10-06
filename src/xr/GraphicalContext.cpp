@@ -10,14 +10,86 @@
 maverik::xr::GraphicalContext::GraphicalContext(const GraphicalContextPropertiesXR &properties)
     : _XRinstance(properties._XRinstance), _XRsystemID(properties._XRsystemID)
 {
-    init();
+    createInstance();
+
+    RenderingContextPropertiesXR renderingProperties{};
+    renderingProperties._XRinstance = _XRinstance;
+    renderingProperties._XRsystemID = _XRsystemID;
+    renderingProperties._vulkanInstance = _instance;
+
+    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(renderingProperties);
+
+    initializeSession();
+
+    auto vulkanContext = _renderingContext->getVulkanContext();
+
+    SwapchainContextCreationPropertiesXR swapchainProperties{};
+    swapchainProperties._instance = _XRinstance;
+    swapchainProperties._systemId = _XRsystemID;
+    swapchainProperties._session = _XRsession;
+    swapchainProperties._physicalDevice = vulkanContext->physicalDevice;
+    swapchainProperties._device = vulkanContext->logicalDevice;
+    swapchainProperties._msaaSamples = vulkanContext->msaaSamples;
+    swapchainProperties._commandPool = vulkanContext->commandPool;
+    swapchainProperties._graphicsQueue = vulkanContext->graphicsQueue;
+
+    _swapchainContext = std::make_shared<maverik::xr::SwapchainContext>(swapchainProperties);
+
 }
 
 maverik::xr::GraphicalContext::~GraphicalContext()
 {
 }
 
-void maverik::xr::GraphicalContext::init()
+
+void maverik::xr::GraphicalContext::initializeSession()
+{
+    if (_XRsession != XR_NULL_HANDLE)
+        return;
+
+    std::shared_ptr<VulkanContext> vulkanContext = _renderingContext->getVulkanContext();
+    if (vulkanContext == nullptr) {
+        std::cerr << "Failed to get Vulkan context" << std::endl;
+        return;
+    }
+
+    XrGraphicsBindingVulkan2KHR graphicsBinding{};
+
+    graphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
+    graphicsBinding.next = nullptr;
+    graphicsBinding.instance = _instance;
+    graphicsBinding.device = vulkanContext->logicalDevice;
+    graphicsBinding.queueFamilyIndex = vulkanContext->graphicsQueueFamilyIndex;
+    graphicsBinding.queueIndex = 0;
+
+    XrSessionCreateInfo sessionCreateInfo{};
+    sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
+    sessionCreateInfo.next = &graphicsBinding;
+    sessionCreateInfo.systemId = _XRsystemID;
+
+    if (xrCreateSession(_XRinstance, &sessionCreateInfo, &_XRsession) != XR_SUCCESS) {
+        std::cerr << "Failed to create XR session" << std::endl;
+        return;
+    }
+}
+
+void maverik::xr::GraphicalContext::createVisualizedSpace()
+{
+    XrReferenceSpaceCreateInfo spaceCreateInfo{};
+    spaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
+    spaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
+    spaceCreateInfo.poseInReferenceSpace = { {0, 0, 0, 1}, {0, 0, 0} };
+
+    XrSpace space;
+    if (xrCreateReferenceSpace(_XRsession, &spaceCreateInfo, &space) != XR_SUCCESS) {
+        std::cerr << "Failed to create reference space" << std::endl;
+        return;
+    }
+    _XRvisualizedSpaces.push_back(space);
+}
+
+
+void maverik::xr::GraphicalContext::createInstance()
 {
     XrGraphicsRequirementsVulkan2KHR graphicsRequirements{};
     PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
@@ -78,12 +150,6 @@ void maverik::xr::GraphicalContext::init()
         std::cerr << "Failed to create Vulkan instance: " << result << std::endl;
         return;
     }
-
-    _renderingContext = std::make_shared<maverik::xr::RenderingContext>(_instance, graphicsRequirements);
-}
-
-void maverik::xr::GraphicalContext::run()
-{
 }
 
 std::vector<std::string> maverik::xr::GraphicalContext::getInstanceExtensions()

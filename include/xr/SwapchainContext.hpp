@@ -8,7 +8,10 @@
 #ifndef SWAPCHAINCONTEXT_HPP_
 #define SWAPCHAINCONTEXT_HPP_
 
-#include "vulkan.hpp"
+#include <array>
+#include <string>
+
+#include "maverik.hpp"
 #include "ASwapchainContext.hpp"
 #include "Utils.hpp"
 #include "xr/Openxr-include.hpp"
@@ -23,6 +26,9 @@ namespace maverik {
             XrSession _session;
             VkPhysicalDevice _physicalDevice;
             VkDevice _device;
+            VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+            VkCommandPool _commandPool;
+            VkQueue _graphicsQueue;
         };
 
         struct SwapchainImageCreationPropertiesXR {
@@ -30,7 +36,8 @@ namespace maverik {
             VkPhysicalDevice _physicalDevice;
             uint32_t _capacity;
             XrSwapchainCreateInfo _swapchainCreateInfo;
-
+            VkCommandPool _commandPool;
+            VkQueue _graphicsQueue;
         };
 
         struct SwapChainImage {
@@ -66,6 +73,9 @@ namespace maverik {
             VkDevice _device;
             VkPhysicalDevice _physicalDevice;
 
+            VkCommandPool _commandPool;
+            VkQueue _graphicsQueue;
+
             void createColorResources();
 
             void createDepthResources();
@@ -91,11 +101,15 @@ namespace maverik {
             protected:
                 void init();
 
-                void initSwapchainImages();
+                // void initSwapchainImages();
 
-                uint64_t selectSwapchainFormat(const std::vector<int64_t> &swapchainFormats);
+                VkFormat selectSwapchainFormat(const std::vector<int64_t> &swapchainFormats);
 
                 std::shared_ptr<SwapChainImage>  createSwapchainImage(XrSwapchainCreateInfo& swapchainCreateInfo, ASwapchain<XrSwapchain> &swapchain);
+
+                void createRenderPass() override;
+
+                void createGraphicsPipeline() override;
 
             private:
                 XrInstance _instance;
@@ -103,6 +117,9 @@ namespace maverik {
                 XrSession _session;
                 VkPhysicalDevice _physicalDevice;
                 VkDevice _device;
+                VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+                VkCommandPool _commandPool;
+                VkQueue _graphicsQueue;
 
                 std::vector<XrViewConfigurationView> _viewsConfigurations;
                 std::vector<XrView> _views;

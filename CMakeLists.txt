@@ -27,6 +27,7 @@ if(ENABLE_XR)
     set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+    add_compile_definitions(__XR__)
 
     FetchContent_Declare(OpenXR-SDK
         GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK.git
@@ -47,6 +48,7 @@ if(ENABLE_XR)
 
     target_link_libraries(maverik PRIVATE openxr_loader vulkan)
 else()
+    add_compile_definitions(__VK__)
     set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

@@ -33,7 +33,7 @@ namespace maverik {
                 ~Software();
 
 
-                protected:
+            protected:
                 /**
                  * @brief Creates an OpenXR instance, initializes the graphical context, and sets up an XR session.
                  *
@@ -53,11 +53,8 @@ namespace maverik {
 
                 void initializeSystem();
 
-                void initializeSession();
-
                 XrInstance _XRinstance = XR_NULL_HANDLE;
                 XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
-                XrSession _XRsession = XR_NULL_HANDLE;
                 std::shared_ptr<AndroidPlatform> _platform;
             private:
         };
