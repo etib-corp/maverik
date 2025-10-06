@@ -43,7 +43,9 @@ struct  VulkanContext{
     VkQueue graphicsQueue;
     VkCommandPool commandPool;
     uint32_t graphicsQueueFamilyIndex;
-    VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+    VkSurfaceKHR surface;
+    GLFWwindow* window;
+    VkSampleCountFlagBits msaaSamples;
 };
 
 namespace maverik {
