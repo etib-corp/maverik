@@ -24,7 +24,7 @@ void maverik::xr::RenderingContext::init()
     createCommandPool();
     _msaaSamples = getMaxUsableSampleCount();
 
-    _vulkanContext = std::make_shared<VulkanContext>(_logicalDevice, _physicalDevice, _graphicsQueue, _renderPass, _commandPool, Utils::findQueueFamilies(_physicalDevice).graphicsFamily.value(), _msaaSamples);
+    _vulkanContext = std::make_shared<VulkanContext>(_logicalDevice, _physicalDevice, _graphicsQueue, _commandPool, Utils::findQueueFamilies(_physicalDevice).graphicsFamily.value(), _msaaSamples);
 }
 
 void maverik::xr::RenderingContext::pickPhysicalDevice(VkInstance instance)
