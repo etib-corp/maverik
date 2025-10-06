@@ -35,7 +35,7 @@ void maverik::xr::Software::createInstance()
 
     const std::vector<std::string> graphicsExtensions = {
         XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME
-    }
+    };
     std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
         [](const std::string &ext) { return ext.c_str(); });
 
