@@ -43,6 +43,9 @@ struct  VulkanContext{
     VkRenderPass renderPass;
     VkCommandPool commandPool;
     uint32_t graphicsQueueFamilyIndex;
+    VkSurfaceKHR surface;
+    GLFWwindow* window;
+    VkSampleCountFlagBits msaaSamples;
 };
 
 namespace maverik {

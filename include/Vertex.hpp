@@ -13,7 +13,7 @@
 namespace maverik {
     /**
      * @brief Vertex structure.
-     *
+     *sof
      * This structure represents a vertex in the 3D space. It contains the
      * position, color, and texture coordinates of the vertex. It is used to
      * define the vertex data for rendering.

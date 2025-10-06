@@ -743,6 +743,7 @@ VkFormat maverik::Utils::findSupportedDepthFormat(VkPhysicalDevice physicalDevic
         }
     }
     throw std::runtime_error("failed to find supported format!");
+}
 
 /**
  * @brief Creates a Vulkan image view for a given image.

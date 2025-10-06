@@ -61,6 +61,17 @@ maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowPr
     this->createIndexBuffer();
     this->createCommandBuffers();
     this->createSyncObjects();
+
+    _vulkanContext = std::make_shared<VulkanContext>();
+    _vulkanContext->logicalDevice = _logicalDevice;
+    _vulkanContext->physicalDevice = _physicalDevice;
+    _vulkanContext->graphicsQueue = _graphicsQueue;
+    _vulkanContext->renderPass = _renderPass;
+    _vulkanContext->commandPool = _commandPool;
+    _vulkanContext->graphicsQueueFamilyIndex = Utils::findQueueFamilies(_physicalDevice, _surface).graphicsFamily.value();
+    _vulkanContext->surface = _surface;
+    _vulkanContext->window = _window;
+    _vulkanContext->msaaSamples = _msaaSamples;
 }
 
 /**

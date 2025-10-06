@@ -10,7 +10,9 @@
 #include <iostream>
 
 #include "AGraphicalContext.hpp"
+
 #include "vk/RenderingContext.hpp"
+#include "vk/SwapchainContext.hpp"
 
 #include "Version.hpp"
 

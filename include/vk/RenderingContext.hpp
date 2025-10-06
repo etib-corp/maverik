@@ -115,8 +115,8 @@ namespace maverik {
 
                 void initWindow(unsigned int width, unsigned int height, const std::string &title);
                 void createSurface(VkInstance instance);
-                void pickPhysicalDevice(VkInstance instance);
-                void createLogicalDevice();
+                void pickPhysicalDevice(VkInstance instance) override;
+                void createLogicalDevice() override;
                 void createCommandPool() override;
 
             private:
