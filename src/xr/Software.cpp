@@ -33,7 +33,9 @@ void maverik::xr::Software::createInstance()
         XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME
     };
 
-    const std::vector<std::string> graphicsExtensions = _graphicalContext->getInstanceExtensions();
+    const std::vector<std::string> graphicsExtensions = {
+        XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME
+    }
     std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
         [](const std::string &ext) { return ext.c_str(); });
 
