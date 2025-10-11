@@ -16,7 +16,7 @@
 #include <sstream>
 
 /**
- * @brief This macro allows getting the name of the current
+ * @brief This macro allows getting the name of the current file
  */
 #define PROPER_FILE std::string(__FILE__).substr(std::string(__FILE__).find_last_of("/\\") + 1)
 

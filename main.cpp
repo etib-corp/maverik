@@ -23,12 +23,6 @@ public:
 	}
 };
 
-__attribute__((constructor)) void init(int ac, char **av)
-{
-	(void)ac;
-	BINARY_NAME = av[0];
-}
-
 int main()
 {
 	// LOG(maverik::ALogger::FATAL, "This is a fatal message");

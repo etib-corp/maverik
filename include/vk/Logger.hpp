@@ -164,6 +164,10 @@ namespace maverik {
                     // Windows-specific implementation
                     return {};
                 }
+            #else
+                static std::vector<std::string> getBacktrace(int size = 128, int skip = 0) {
+                    return {};
+                }
             #endif
         };
     }

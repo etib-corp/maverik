@@ -81,6 +81,26 @@ void maverik::vk::Logger::log(const std::string &message, const std::string& log
     _stream << out;
     _stream.flush();
 }
-#elif defined(_WIN32)
+// #elif defined(_WIN32)
+// #elif defined(__ANDROID__)
+#else
+void maverik::vk::Logger::log(const std::string &message, const std::string& logLevel, const std::string& caller) const
+{
+    std::string out = "";
+    std::stringstream ss;
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+
+    out += _env;
+    out += _programName;
+    out += logLevel;
+    ss << std::put_time(&tm, "%b-%d %H:%M:%S    ");
+    out += ss.str();
+    out += message + "    \n\t";
+    out += caller + "    \n";
+    out += "\tBacktrace not supported yet on this platform\n";
+    _stream << out;
+    _stream.flush();
+}
 
 #endif
