@@ -68,11 +68,34 @@ maverik::vk::GraphicalContext::GraphicalContext(const std::string &appName, cons
         .title = _appName
     };
     _renderingContext = std::make_shared<maverik::vk::RenderingContext>(windowProperties, _instance);
-    // TODO: add swapchain context creation with properties
+
+    auto vulkanContext = _renderingContext->getVulkanContext();
+    maverik::vk::SwapchainContext::SwapchainContextCreationProperties swapchainProperties = {
+        ._surface = vulkanContext->surface,
+        ._physicalDevice = vulkanContext->physicalDevice,
+        ._logicalDevice = vulkanContext->logicalDevice,
+        ._window = vulkanContext->window,
+        ._msaaSamples = vulkanContext->msaaSamples,
+        ._commandPool = vulkanContext->commandPool,
+        ._graphicsQueue = vulkanContext->graphicsQueue,
+        ._instance = _instance
+    };
+
+    _swapchainContext = std::make_shared<maverik::vk::SwapchainContext>(swapchainProperties);
 }
 
 maverik::vk::GraphicalContext::~GraphicalContext()
 {
+    delete _appVersion;
+    delete _engineVersion;
+
+    if (enableValidationLayers) {
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
+        if (func != nullptr) {
+            func(_instance, nullptr, nullptr);
+        }
+    }
+    vkDestroyInstance(_instance, nullptr);
 }
 
 void maverik::vk::GraphicalContext::createInstance()

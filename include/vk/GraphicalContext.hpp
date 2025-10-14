@@ -99,6 +99,10 @@ namespace maverik {
                  * This constructor initializes a new GraphicalContext object with default application and engine names and versions.
                  * It creates a Vulkan instance, sets up the rendering context with default window properties, and
                  * initializes the swapchain context using properties from the Vulkan context.
+                 *
+                 * @note The default window size is set to 800x600 pixels.
+                 * @note The default application name is "Hello, World !" and the engine name is "Maverik".
+                 * @note The default application and engine versions are set to 1.0.0
                  */
                 GraphicalContext();
 
