@@ -63,10 +63,6 @@ namespace maverik {
                      */
                     VkQueue _graphicsQueue;
                     /*
-                     * @brief The Vulkan render pass used for rendering operations.
-                     */
-                    VkRenderPass _renderPass;
-                    /*
                      * @brief The Vulkan instance associated with the swapchain context.
                      */
                     VkInstance _instance;
@@ -164,7 +160,6 @@ namespace maverik {
                 VkPipelineLayout _pipelineLayout;       // Vulkan pipeline layout
                 VkPipeline _graphicsPipeline;           // Vulkan graphics pipeline
 
-                void createGraphicsPipeline(VkRenderPass renderPass, VkDevice logicalDevice, VkSampleCountFlagBits msaaSamples);
 
                 VkDescriptorPool _descriptorPool;                       // Vulkan descriptor pool for managing descriptor sets
                 std::vector<VkDescriptorSet> _descriptorSets;           // Vector of Vulkan descriptor sets for uniform data
@@ -184,6 +179,8 @@ namespace maverik {
 
                 void createRenderPass() override;
 
+                void createGraphicsPipeline() override;
+
             private:
                 SwapchainContextCreationProperties _creationProperties;
 
@@ -193,8 +190,6 @@ namespace maverik {
 
                 void createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples);
                 void createDepthResources(const TextureImageCreationProperties& properties);
-
-                VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
 
                 VkSamplerCreateInfo getDefaultSamplerInfo(const VkPhysicalDeviceProperties& properties);
 
