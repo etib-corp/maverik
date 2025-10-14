@@ -41,7 +41,6 @@ maverik::xr::GraphicalContext::~GraphicalContext()
 {
 }
 
-
 void maverik::xr::GraphicalContext::initializeSession()
 {
     if (_XRsession != XR_NULL_HANDLE)
