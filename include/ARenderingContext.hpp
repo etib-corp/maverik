@@ -37,16 +37,28 @@
  * @var VulkanContext::graphicsQueueFamilyIndex
  * The index of the queue family that supports graphics operations.
  */
-struct  VulkanContext{
-    VkDevice logicalDevice;
-    VkPhysicalDevice physicalDevice;
-    VkQueue graphicsQueue;
-    VkCommandPool commandPool;
-    uint32_t graphicsQueueFamilyIndex;
-    VkSurfaceKHR surface;
-    GLFWwindow* window;
-    VkSampleCountFlagBits msaaSamples;
-};
+#ifdef __VK__
+    struct  VulkanContext{
+        VkDevice logicalDevice;
+        VkPhysicalDevice physicalDevice;
+        VkQueue graphicsQueue;
+        VkCommandPool commandPool;
+        uint32_t graphicsQueueFamilyIndex;
+        VkSurfaceKHR surface;
+        GLFWwindow* window;
+        VkSampleCountFlagBits msaaSamples;
+    };
+#elif __XR__
+    struct  VulkanContext{
+        VkDevice logicalDevice;
+        VkPhysicalDevice physicalDevice;
+        VkQueue graphicsQueue;
+        VkCommandPool commandPool;
+        uint32_t graphicsQueueFamilyIndex;
+        VkSampleCountFlagBits msaaSamples;
+    };
+    
+#endif
 
 namespace maverik {
     class ARenderingContext {
