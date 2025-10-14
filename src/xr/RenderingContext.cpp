@@ -7,6 +7,7 @@
 
 #include "xr/RenderingContext.hpp"
 
+
 maverik::xr::RenderingContext::RenderingContext(const RenderingContextPropertiesXR &properties)
     : _XRinstance(properties._XRinstance), _XRsystemID(properties._XRsystemID), _vulkanInstance(properties._vulkanInstance)
 {
@@ -26,6 +27,7 @@ void maverik::xr::RenderingContext::init()
 
     _vulkanContext = std::make_shared<VulkanContext>(_logicalDevice, _physicalDevice, _graphicsQueue, _commandPool, Utils::findQueueFamilies(_physicalDevice).graphicsFamily.value(), _msaaSamples);
 }
+
 
 void maverik::xr::RenderingContext::pickPhysicalDevice(VkInstance instance)
 {
@@ -54,6 +56,7 @@ void maverik::xr::RenderingContext::pickPhysicalDevice(VkInstance instance)
         return;
     }
 }
+
 
 void maverik::xr::RenderingContext::createLogicalDevice()
 {
