@@ -82,7 +82,7 @@ namespace maverik {
 
             void createFrameBuffers();
 
-            // void createCommandBuffers();
+            void createCommandBuffers();
 
             // void createSyncObjects();
 
