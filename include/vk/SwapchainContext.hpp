@@ -191,6 +191,8 @@ namespace maverik {
                 void createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples);
                 void createDepthResources(const TextureImageCreationProperties& properties);
 
+                VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkDevice logicalDevice);
+
                 VkSamplerCreateInfo getDefaultSamplerInfo(const VkPhysicalDeviceProperties& properties);
 
                 void createSingleDescriptorSets(VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler);
