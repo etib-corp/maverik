@@ -55,7 +55,6 @@ maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowPr
     this->createSurface(instance);
     this->pickPhysicalDevice(instance);
     this->createLogicalDevice();
-    this->createRenderPass(_surface);
     this->createCommandPool();
     this->createVertexBuffer();
     this->createIndexBuffer();
@@ -66,7 +65,6 @@ maverik::vk::RenderingContext::RenderingContext(const WindowProperties &windowPr
     _vulkanContext->logicalDevice = _logicalDevice;
     _vulkanContext->physicalDevice = _physicalDevice;
     _vulkanContext->graphicsQueue = _graphicsQueue;
-    _vulkanContext->renderPass = _renderPass;
     _vulkanContext->commandPool = _commandPool;
     _vulkanContext->graphicsQueueFamilyIndex = Utils::findQueueFamilies(_physicalDevice, _surface).graphicsFamily.value();
     _vulkanContext->surface = _surface;
