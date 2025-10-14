@@ -29,13 +29,9 @@
 
     #include <GLFW/glfw3native.h>
 
-    #define XIDER_VK_IMPLEMENTATION
-
 #endif
 
 #ifdef __XR__
-
-    #define XIDER_XR_IMPLEMENTATION
 
     #include <openxr/openxr.h>
 

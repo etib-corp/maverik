@@ -64,9 +64,9 @@ namespace maverik {
             VkPipelineLayout _pipelineLayout;       // Vulkan pipeline layout
             VkPipeline _graphicsPipeline;           // Vulkan graphics pipeline
 
-            #if defined(XIDER_VK_IMPLEMENTATION)
+            #if defined(__VK__)
                 ASwapchain<VkSwapchainKHR> _swapchain;  // Vulkan swapchain
-            #elif defined(XIDER_XR_IMPLEMENTATION)
+            #elif defined(__XR__)
                 std::vector<ASwapchain<XrSwapchain>> _swapchain;    // OpenXR swapchains
             #endif
     };

@@ -16,7 +16,6 @@
     const bool enableValidationLayers = true;
 #endif
 
-#define XIDER_VK_IMPLEMENTATION
 
 ////////////////////
 // Static methods //
