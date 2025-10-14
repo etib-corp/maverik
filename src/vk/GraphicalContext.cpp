@@ -86,6 +86,16 @@ maverik::vk::GraphicalContext::GraphicalContext(const std::string &appName, cons
 
 maverik::vk::GraphicalContext::~GraphicalContext()
 {
+    delete _appVersion;
+    delete _engineVersion;
+
+    if (enableValidationLayers) {
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
+        if (func != nullptr) {
+            func(_instance, nullptr, nullptr);
+        }
+    }
+    vkDestroyInstance(_instance, nullptr);
 }
 
 void maverik::vk::GraphicalContext::createInstance()
