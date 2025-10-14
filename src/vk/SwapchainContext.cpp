@@ -330,13 +330,13 @@ void maverik::vk::SwapchainContext::init(VkSurfaceKHR surface, VkPhysicalDevice 
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &_swapchain) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &_swapchain.swapchain) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    vkGetSwapchainImagesKHR(logicalDevice, _swapchain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(logicalDevice, _swapchain.swapchain, &imageCount, nullptr);
     _swapchainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(logicalDevice, _swapchain, &imageCount, _swapchainImages.data());
+    vkGetSwapchainImagesKHR(logicalDevice, _swapchain.swapchain, &imageCount, _swapchainImages.data());
 
     _swapchainColorFormat = surfaceFormat.format;
     _swapchainExtent = extent;
@@ -421,7 +421,7 @@ void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
         vkDestroyImageView(logicalDevice, imageView, nullptr);
     }
 
-    vkDestroySwapchainKHR(logicalDevice, _swapchain, nullptr);
+    vkDestroySwapchainKHR(logicalDevice, _swapchain.swapchain, nullptr);
 }
 
 /**
