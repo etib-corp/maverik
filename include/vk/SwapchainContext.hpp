@@ -125,7 +125,6 @@ namespace maverik {
                 void createTextureImage(const std::string& texturePath, const TextureImageCreationProperties& properties);
 
             protected:
-                VkSwapchainKHR _swapchain;
                 // In addition to the base swapchain
                 std::vector<VkImage> _swapchainImages;
 
