@@ -21,7 +21,7 @@ namespace maverik {
      */
     struct Vertex {
         glm::vec3 pos;          // Position of the vertex
-        glm::vec3 color;        // Color of the vertex
+        glm::vec3 color;        // Color of the vertex    (TODO: change to vec4 for alpha)
         glm::vec2 texCoord;     // Texture coordinates of the vertex
 
         /*
