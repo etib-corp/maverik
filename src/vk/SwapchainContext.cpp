@@ -70,6 +70,8 @@ maverik::vk::SwapchainContext::SwapchainContext(const SwapchainContextCreationPr
         properties._graphicsQueue
     };
 
+    this->_creationProperties = properties;
+
     this->setupDebugMessenger(properties._instance);
 
     this->init(properties._surface, properties._physicalDevice, properties._logicalDevice, properties._window);
@@ -324,15 +326,15 @@ void maverik::vk::SwapchainContext::init(VkSurfaceKHR surface, VkPhysicalDevice 
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &_swapchain.swapchain) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &_swapchain) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    vkGetSwapchainImagesKHR(logicalDevice, _swapchain.swapchain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(logicalDevice, _swapchain, &imageCount, nullptr);
     _swapchainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(logicalDevice, _swapchain.swapchain, &imageCount, _swapchainImages.data());
+    vkGetSwapchainImagesKHR(logicalDevice, _swapchain, &imageCount, _swapchainImages.data());
 
-    _swapchainFormat = surfaceFormat.format;
+    _swapchainColorFormat = surfaceFormat.format;
     _swapchainExtent = extent;
 
     this->createImageViews(logicalDevice);
@@ -353,7 +355,7 @@ void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
     _imageViews.resize(_swapchainImages.size());
 
     for (uint32_t i = 0; i < _swapchainImages.size(); i++) {
-        _imageViews[i] = this->createImageView(_swapchainImages[i], _swapchainFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+        _imageViews[i] = this->createImageView(_swapchainImages[i], _swapchainColorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
     }
 }
 
@@ -571,7 +573,7 @@ void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
         vkDestroyImageView(logicalDevice, imageView, nullptr);
     }
 
-    vkDestroySwapchainKHR(logicalDevice, _swapchain.swapchain, nullptr);
+    vkDestroySwapchainKHR(logicalDevice, _swapchain, nullptr);
 }
 
 /**
@@ -724,6 +726,83 @@ void maverik::vk::SwapchainContext::createTextureSampler(VkDevice logicalDevice,
     }
 }
 
+void maverik::vk::SwapchainContext::createRenderPass()
+{
+    auto swapchainSupport = maverik::Utils::querySwapChainSupport(_creationProperties._physicalDevice, _creationProperties._surface);
+    auto swapchainFormat = this->chooseSwapSurfaceFormat(swapchainSupport.formats);
+
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = swapchainFormat.format;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.samples = _creationProperties._msaaSamples;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = maverik::Utils::findDepthFormat(_creationProperties._physicalDevice);
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthAttachment.samples = _creationProperties._msaaSamples;
+
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentDescription colorAttachmentResolve{};
+    colorAttachmentResolve.format = swapchainFormat.format;
+    colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference colorAttachmentResolveRef{};
+    colorAttachmentResolveRef.attachment = 2;
+    colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
+    subpass.pResolveAttachments = &colorAttachmentResolveRef;
+
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    renderPassInfo.pAttachments = attachments.data();
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
+
+    if (vkCreateRenderPass(_creationProperties._logicalDevice, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create render pass!");
+    }
+}
+
 /////////////////////
 // Private methods //
 /////////////////////
@@ -827,7 +906,7 @@ VkExtent2D maverik::vk::SwapchainContext::chooseSwapExtent(const VkSurfaceCapabi
  */
 void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples)
 {
-    VkFormat colorFormat = _swapchainFormat;
+    VkFormat colorFormat = _swapchainColorFormat;
     Utils::CreateImageProperties imageProperties = {
         ._logicalDevice = logicalDevice,
         ._physicalDevice = physicalDevice,
