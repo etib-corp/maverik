@@ -52,7 +52,6 @@ maverik::vk::GraphicalContext::GraphicalContext()
         ._msaaSamples = vulkanContext->msaaSamples,
         ._commandPool = vulkanContext->commandPool,
         ._graphicsQueue = vulkanContext->graphicsQueue,
-        ._renderPass = vulkanContext->renderPass,
         ._instance = _instance
     };
 
