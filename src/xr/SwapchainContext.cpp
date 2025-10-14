@@ -154,7 +154,11 @@ void maverik::xr::SwapChainImage::init(const SwapchainImageCreationPropertiesXR 
     for (auto &image : _swapchainImages) {
         image.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR;
     }
-
+    createColorResources();
+    createDepthResources();
+    createFrameBuffers();
+    createCommandBuffers();
+    // createSyncObjects();
 }
 
 void maverik::xr::SwapChainImage::createColorResources()
@@ -293,6 +297,21 @@ XrSwapchainImageBaseHeader *maverik::xr::SwapChainImage::getFirstImagePointer()
         return nullptr;
     }
     return reinterpret_cast<XrSwapchainImageBaseHeader*>(&_swapchainImages[0]);
+}
+
+void maverik::xr::SwapChainImage::createCommandBuffers()
+{
+    _graphicsCommandBuffers.resize(_maxFramesInFlight);
+
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = _commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(_graphicsCommandBuffers.size());
+
+    if (vkAllocateCommandBuffers(_device, &allocInfo, _graphicsCommandBuffers.data()) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to allocate command buffers");
+    }
 }
 
 void maverik::xr::SwapchainContext::createRenderPass()
