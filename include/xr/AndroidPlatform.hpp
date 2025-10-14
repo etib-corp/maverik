@@ -19,7 +19,19 @@ namespace maverik {
     namespace xr {
         class AndroidPlatform {
             public:
+
+                /**
+                 * @brief Constructs an AndroidPlatform object and initializes the OpenXR loader for Android.
+                 *
+                 * This constructor attempts to retrieve and call the `xrInitializeLoaderKHR` function to initialize
+                 * the OpenXR loader with Android-specific information provided in the `PlatformData` structure.
+                 * It sets up the loader initialization info and stores the instance creation info for later use.
+                 *
+                 * @param platformData Shared pointer to a PlatformData structure containing Android application VM and activity.
+                 */
                 AndroidPlatform(std::shared_ptr<PlatformData> platformData);
+
+                // Destructor
                 ~AndroidPlatform();
 
                 /**
