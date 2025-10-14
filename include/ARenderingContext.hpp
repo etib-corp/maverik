@@ -65,6 +65,13 @@ namespace maverik {
         public:
             virtual ~ARenderingContext() = default;
 
+            /**
+             * @brief Initializes the rendering context.
+             *
+             * This pure virtual function must be implemented by derived classes to set up
+             * the rendering context, including Vulkan instance creation, device selection,
+             * swapchain setup, and other necessary configurations.
+             */
             virtual void init() = 0;
 
             /**
@@ -101,22 +108,58 @@ namespace maverik {
             }
 
         protected:
-
+            /**
+             * @brief Selects and initializes a suitable physical device (GPU) for Vulkan operations.
+             *
+             * This pure virtual function is responsible for picking a physical device from the available
+             * Vulkan-compatible devices on the system. Implementations should evaluate the devices based
+             * on required features, performance, and compatibility, and select the most appropriate one.
+             *
+             * @param instance The Vulkan instance used to enumerate physical devices.
+             */
             virtual void pickPhysicalDevice(VkInstance instance) = 0;
 
+            /**
+             * @brief Creates the logical device for the rendering context.
+             *
+             * This pure virtual function is responsible for initializing and creating
+             * the logical device, which is required for rendering operations. The
+             * implementation should handle all necessary setup and resource allocation
+             * for the logical device.
+             *
+             * @note Must be implemented by derived classes.
+             */
             virtual void createLogicalDevice() = 0;
 
+            /**
+             * @brief Creates a command pool for the rendering context.
+             *
+             * This function initializes and allocates the necessary resources for a command pool,
+             * which is used to manage the memory and lifecycle of command buffers in the rendering pipeline.
+             * Derived classes should implement this method to set up the command pool according to the
+             * specific graphics API or rendering backend being used.
+             *
+             * @note Must be called before allocating or recording command buffers.
+             */
             virtual void createCommandPool();
 
+            /**
+             * @brief Retrieves the maximum usable sample count for multisampling.
+             *
+             * This function queries the physical device capabilities and determines the highest
+             * supported sample count that can be used for multisample anti-aliasing (MSAA).
+             *
+             * @return VkSampleCountFlagBits The maximum supported sample count for MSAA.
+             */
             VkSampleCountFlagBits getMaxUsableSampleCount() const;
 
-            VkDevice _logicalDevice;
-            VkPhysicalDevice _physicalDevice;
-            VkQueue _graphicsQueue;
-            VkCommandPool _commandPool;
-            VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+            VkDevice _logicalDevice;            // Logical device for rendering operations
+            VkPhysicalDevice _physicalDevice;   // Physical device (GPU) used for rendering
+            VkQueue _graphicsQueue;             // Graphics queue for submitting rendering commands
+            VkCommandPool _commandPool;         // Command pool for managing command buffers
+            VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;     // MSAA sample count
 
-            std::shared_ptr<VulkanContext> _vulkanContext;
+            std::shared_ptr<VulkanContext> _vulkanContext;      // Shared pointer to Vulkan context
 
     };
 }
