@@ -358,7 +358,7 @@ void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
     _imageViews.resize(_swapchainImages.size());
 
     for (uint32_t i = 0; i < _swapchainImages.size(); i++) {
-        _imageViews[i] = this->createImageView(_swapchainImages[i], _swapchainColorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+        _imageViews[i] = Utils::createImageView(_swapchainImages[i], _swapchainColorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice, _mipLevels);
     }
 }
 
@@ -540,7 +540,7 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
 void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevice)
 {
     for (const auto& [textureName, textureImage] : _textureImage) {
-        _textureImageView[textureName] = this->createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+        _textureImageView[textureName] = Utils::createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice, _mipLevels);
     }
 }
 
@@ -898,7 +898,7 @@ void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice,
     };
 
     Utils::createImage(imageProperties);
-    _colorImageView = this->createImageView(_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice);
+    _colorImageView = Utils::createImageView(_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice, _mipLevels);
 }
 
 /**
@@ -931,7 +931,7 @@ void maverik::vk::SwapchainContext::createDepthResources(const TextureImageCreat
     };
 
     Utils::createImage(depthImageProperties);
-    _depthImageView = this->createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, properties._logicalDevice);
+    _depthImageView = Utils::createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, properties._logicalDevice, _mipLevels);
 
     Utils::TransitionImageLayoutProperties transitionProperties = {
         ._logicalDevice = properties._logicalDevice,
