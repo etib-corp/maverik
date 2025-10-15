@@ -45,22 +45,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallback(VkDebugUtilsMessageSe
 // Public methods //
 ////////////////////
 
-/**
- * @brief Constructs a SwapchainContext object and initializes Vulkan resources.
- *
- * This constructor sets up the swapchain context by initializing the Vulkan surface,
- * physical device, logical device, and window. It also creates the necessary resources
- * for rendering, including color resources, depth resources, and framebuffers.
- *
- * @param surface The Vulkan surface handle associated with the swapchain.
- * @param physicalDevice The Vulkan physical device used for rendering.
- * @param logicalDevice The Vulkan logical device used for rendering.
- * @param window A pointer to the GLFW window associated with the swapchain.
- * @param msaaSamples The number of samples for multisample anti-aliasing (MSAA).
- * @param commandPool The Vulkan command pool used for command buffer allocation.
- * @param graphicsQueue The Vulkan graphics queue used for rendering commands.
- * @param renderPass The Vulkan render pass used for rendering operations.
- */
 maverik::vk::SwapchainContext::SwapchainContext(const SwapchainContextCreationProperties& properties)
 {
     struct TextureImageCreationProperties textureImageProperties = {
@@ -94,31 +78,10 @@ maverik::vk::SwapchainContext::SwapchainContext(const SwapchainContextCreationPr
     this->createGraphicsPipeline();
 }
 
-/**
- * @brief Destructor for the SwapchainContext class.
- *
- * Cleans up Vulkan resources associated with the swapchain context.
- */
 maverik::vk::SwapchainContext::~SwapchainContext()
 {
 }
 
-/**
- * @brief Recreates the Vulkan swapchain and associated resources.
- *
- * This function handles the recreation of the swapchain and its dependent resources
- * when the window is resized or other conditions require a swapchain update. It ensures
- * that the Vulkan device is idle before performing cleanup and reinitialization.
- *
- * @param surface The Vulkan surface associated with the swapchain.
- * @param physicalDevice The Vulkan physical device used for resource creation.
- * @param logicalDevice The Vulkan logical device used for operations.
- * @param window The GLFW window handle associated with the application.
- * @param msaaSamples The number of samples used for multisampling (MSAA).
- * @param commandPool The Vulkan command pool used for command buffer allocation.
- * @param graphicsQueue The Vulkan graphics queue used for rendering operations.
- * @param renderPass The Vulkan render pass used for rendering.
- */
 void maverik::vk::SwapchainContext::recreate(const SwapchainContextCreationProperties& properties)
 {
     int width = 0;
@@ -150,18 +113,6 @@ void maverik::vk::SwapchainContext::recreate(const SwapchainContextCreationPrope
 // Protected methods //
 ///////////////////////
 
-/**
- * @brief Sets up the Vulkan debug messenger for the rendering context.
- *
- * This function initializes a Vulkan debug messenger if validation layers
- * are enabled. The debug messenger is used to capture and handle debug
- * messages from the Vulkan API, which can help in identifying issues
- * during development.
- *
- * @param instance The Vulkan instance to associate the debug messenger with.
- *
- * @throws std::runtime_error If the debug messenger setup fails.
- */
 void maverik::vk::SwapchainContext::setupDebugMessenger(VkInstance instance)
 {
     if (!enableValidationLayers)
@@ -175,19 +126,6 @@ void maverik::vk::SwapchainContext::setupDebugMessenger(VkInstance instance)
     }
 }
 
-/**
- * @brief Creates a Vulkan descriptor pool for managing descriptor sets.
- *
- * This function initializes a descriptor pool with specific pool sizes for
- * uniform buffers and combined image samplers. The number of descriptors
- * allocated for each type is determined by the constant MAX_FRAMES_IN_FLIGHT.
- *
- * @throws std::runtime_error If the Vulkan descriptor pool creation fails.
- *
- * The descriptor pool is used to allocate descriptor sets, which are
- * essential for binding resources (e.g., buffers and images) to shaders
- * during rendering.
- */
 void maverik::vk::SwapchainContext::createDescriptorPool(VkDevice logicalDevice)
 {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
@@ -207,20 +145,6 @@ void maverik::vk::SwapchainContext::createDescriptorPool(VkDevice logicalDevice)
     }
 }
 
-/**
- * @brief Creates the descriptor set layout for the Vulkan rendering context.
- *
- * This function defines and creates a descriptor set layout that specifies
- * the bindings for uniform buffers and combined image samplers. The layout
- * is used to interface between shaders and resources such as uniform buffers
- * and textures.
- *
- * The descriptor set layout includes:
- * - A uniform buffer binding at binding index 0, accessible in the vertex shader stage.
- * - A combined image sampler binding at binding index 1, accessible in the fragment shader stage.
- *
- * @throws std::runtime_error If the Vulkan API call to create the descriptor set layout fails.
- */
 void maverik::vk::SwapchainContext::createDescriptorSetLayout(VkDevice logicalDevice)
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
@@ -248,23 +172,6 @@ void maverik::vk::SwapchainContext::createDescriptorSetLayout(VkDevice logicalDe
     }
 }
 
-/**
- * @brief Creates and allocates descriptor sets for the rendering context.
- *
- * This function sets up descriptor sets for each frame in flight, binding
- * uniform buffers and texture samplers to the appropriate descriptor bindings.
- *
- * @param textureImageView The Vulkan image view representing the texture to be sampled.
- * @param textureSampler The Vulkan sampler used for sampling the texture.
- *
- * @throws std::runtime_error If descriptor set allocation fails.
- *
- * The function performs the following steps:
- * 1. Allocates descriptor sets from the descriptor pool for the maximum number of frames in flight.
- * 2. Configures descriptor buffer info for uniform buffers.
- * 3. Configures descriptor image info for the texture image view and sampler.
- * 4. Updates the descriptor sets with the uniform buffer and texture sampler bindings.
- */
 void maverik::vk::SwapchainContext::createDescriptorSets(VkDevice logicalDevice, std::map<VkImageView, VkSampler> imagesViewsAndSamplers)
 {
     for (const auto [imageView, sampler] : imagesViewsAndSamplers) {
@@ -272,21 +179,6 @@ void maverik::vk::SwapchainContext::createDescriptorSets(VkDevice logicalDevice,
     }
 }
 
-/**
- * @brief Initializes the Vulkan swapchain context.
- *
- * This function sets up the Vulkan swapchain, which is responsible for managing
- * the images that are presented to the screen. It configures the swapchain based
- * on the provided surface, physical device, logical device, and window, and creates
- * the necessary image views for rendering.
- *
- * @param surface The Vulkan surface to present images to.
- * @param physicalDevice The Vulkan physical device (GPU) to use.
- * @param logicalDevice The Vulkan logical device associated with the physical device.
- * @param window The GLFW window handle used to determine the swapchain extent.
- *
- * @throws std::runtime_error If the swapchain creation fails.
- */
 void maverik::vk::SwapchainContext::init(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, GLFWwindow *window)
 {
     Utils::SwapChainSupportDetails swapChainSupport = Utils::querySwapChainSupport(physicalDevice, surface);
@@ -343,16 +235,6 @@ void maverik::vk::SwapchainContext::init(VkSurfaceKHR surface, VkPhysicalDevice 
     this->createImageViews(logicalDevice);
 }
 
-/**
- * @brief Creates image views for all swapchain images.
- *
- * This function resizes the `_imageViews` vector to match the size of the `_swapchainImages` vector
- * and initializes each image view by calling the `createImageView` method. The image views are
- * created with the specified swapchain format and color aspect, and are associated with the provided
- * logical Vulkan device.
- *
- * @param logicalDevice The Vulkan logical device used to create the image views.
- */
 void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
 {
     _imageViews.resize(_swapchainImages.size());
@@ -362,19 +244,6 @@ void maverik::vk::SwapchainContext::createImageViews(VkDevice logicalDevice)
     }
 }
 
-/**
- * @brief Creates framebuffers for the swapchain images.
- *
- * This function initializes a framebuffer for each image view in the swapchain.
- * Each framebuffer is configured with a color attachment, a depth attachment,
- * and the corresponding swapchain image view. The framebuffers are stored in
- * the `_swapchainFramebuffers` member variable.
- *
- * @param renderPass The Vulkan render pass to be used with the framebuffers.
- * @param logicalDevice The Vulkan logical device used to create the framebuffers.
- *
- * @throws std::runtime_error If framebuffer creation fails.
- */
 void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice, VkRenderPass renderPass)
 {
     _swapchainFramebuffers.resize(_imageViews.size());
@@ -401,15 +270,6 @@ void maverik::vk::SwapchainContext::createFramebuffers(VkDevice logicalDevice, V
     }
 }
 
-/**
- * @brief Cleans up Vulkan resources associated with the swapchain context.
- *
- * This function destroys all framebuffers, image views, and the swapchain
- * associated with the swapchain context. It ensures proper resource
- * deallocation to prevent memory leaks.
- *
- * @param logicalDevice The Vulkan logical device used to destroy the resources.
- */
 void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
 {
     for (auto framebuffer : _swapchainFramebuffers) {
@@ -423,23 +283,6 @@ void maverik::vk::SwapchainContext::cleanup(VkDevice logicalDevice)
     vkDestroySwapchainKHR(logicalDevice, _swapchain.swapchain, nullptr);
 }
 
-/**
- * @brief Creates a Vulkan texture image from a file and prepares it for use in shaders.
- *
- * Loads an image from the specified file path, uploads it to a Vulkan image resource,
- * generates mipmaps, and transitions the image layout for shader access.
- *
- * @param physicalDevice The Vulkan physical device used for memory property queries.
- * @param logicalDevice The Vulkan logical device used for resource creation.
- * @param commandPool The command pool used for submitting transfer and layout transition commands.
- * @param graphicsQueue The graphics queue used to execute transfer and layout transition commands.
- * @param texturePath The file path to the texture image to be loaded.
- *
- * @throws std::runtime_error If the texture image fails to load.
- *
- * @note The function creates a staging buffer for image data transfer, allocates and fills
- *       device-local image memory, generates mipmaps, and cleans up temporary resources.
- */
 void maverik::vk::SwapchainContext::createTextureImage(const std::string& texturePath, const TextureImageCreationProperties& properties)
 {
     int texWidth = 0;
@@ -528,15 +371,6 @@ void maverik::vk::SwapchainContext::createTextureImage(const std::string& textur
     vkFreeMemory(properties._logicalDevice, stagingBufferMemory, nullptr);
 }
 
-/**
- * @brief Creates an image view for the swapchain's texture image.
- *
- * This function initializes the `_textureImageView` member by creating an image view
- * for the swapchain's texture image (`_textureImage`) using the specified logical device.
- * The image view is created with the `VK_FORMAT_R8G8B8A8_SRGB` format and the color aspect flag.
- *
- * @param logicalDevice The Vulkan logical device used to create the image view.
- */
 void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevice)
 {
     for (const auto& [textureName, textureImage] : _textureImage) {
@@ -544,19 +378,6 @@ void maverik::vk::SwapchainContext::createTextureImageView(VkDevice logicalDevic
     }
 }
 
-/**
- * @brief Creates a Vulkan texture sampler for the swapchain context.
- *
- * This function initializes a VkSampler object with linear filtering, repeat addressing mode,
- * and enables anisotropic filtering using the maximum supported anisotropy level of the physical device.
- * The sampler is configured for use with normalized coordinates and supports mipmapping.
- *
- * @param logicalDevice The Vulkan logical device used to create the sampler.
- * @param physicalDevice The Vulkan physical device used to query device properties.
- * @param textureName The name of the texture for which the sampler is being created.
- *
- * @throws std::runtime_error If the sampler creation fails.
- */
 void maverik::vk::SwapchainContext::createTextureSampler(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, const std::string& textureName, VkSamplerCreateInfo samplerInfo)
 {
     VkPhysicalDeviceProperties properties{};
@@ -784,19 +605,6 @@ void maverik::vk::SwapchainContext::createGraphicsPipeline()
 // Private methods //
 /////////////////////
 
-/**
- * @brief Chooses the most suitable surface format for the swapchain.
- *
- * This function iterates through the list of available surface formats and
- * selects the one that best matches the desired format and color space.
- * If the preferred format (VK_FORMAT_B8G8R8A8_SRGB) and color space
- * (VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) are available, it returns that format.
- * Otherwise, it defaults to the first available format in the list.
- *
- * @param availableFormats A vector of VkSurfaceFormatKHR structures representing
- *                         the formats supported by the surface.
- * @return VkSurfaceFormatKHR The chosen surface format.
- */
 VkSurfaceFormatKHR maverik::vk::SwapchainContext::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
     for (const auto& availableFormat : availableFormats) {
@@ -807,20 +615,6 @@ VkSurfaceFormatKHR maverik::vk::SwapchainContext::chooseSwapSurfaceFormat(const 
     return availableFormats[0];
 }
 
-/**
- * @brief Chooses the most suitable Vulkan present mode for the swapchain.
- *
- * This function iterates through the list of available present modes and selects
- * the most optimal one based on predefined preferences. The preferred present mode
- * is `VK_PRESENT_MODE_MAILBOX_KHR` due to its low latency and ability to avoid tearing.
- * If the preferred mode is not available, it falls back to `VK_PRESENT_MODE_FIFO_KHR`,
- * which is guaranteed to be supported and ensures vertical synchronization.
- *
- * @param availablePresentModes A vector containing the list of present modes supported
- *                              by the Vulkan surface.
- * @return VkPresentModeKHR The chosen present mode. Returns `VK_PRESENT_MODE_MAILBOX_KHR`
- *                          if available, otherwise defaults to `VK_PRESENT_MODE_FIFO_KHR`.
- */
 VkPresentModeKHR maverik::vk::SwapchainContext::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
     for (const auto& availablePresentMode : availablePresentModes) {
@@ -832,24 +626,6 @@ VkPresentModeKHR maverik::vk::SwapchainContext::chooseSwapPresentMode(const std:
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-/**
- * @brief Chooses the appropriate swap extent for the Vulkan swapchain.
- *
- * This function determines the dimensions of the swapchain images based on the
- * surface capabilities and the size of the window's framebuffer. If the current
- * extent of the surface capabilities is not set to the special value
- * `std::numeric_limits<uint32_t>::max()`, it directly returns the current extent.
- * Otherwise, it queries the framebuffer size of the given GLFW window and clamps
- * the dimensions to fit within the minimum and maximum image extents specified
- * by the surface capabilities.
- *
- * @param capabilities The surface capabilities that describe the supported
- *                      properties of the Vulkan surface.
- * @param window        A pointer to the GLFW window associated with the Vulkan
- *                      surface.
- * @return VkExtent2D   The chosen swap extent, which specifies the width and
- *                      height of the swapchain images.
- */
 VkExtent2D maverik::vk::SwapchainContext::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow *window)
 {
     int width = 0;
@@ -871,16 +647,6 @@ VkExtent2D maverik::vk::SwapchainContext::chooseSwapExtent(const VkSurfaceCapabi
     return actualExtent;
 }
 
-/**
- * @brief Creates color resources for the swapchain, including a color image and its associated image view.
- *
- * This function initializes a color image with the specified format, extent, and sample count, and allocates
- * memory for it. Additionally, it creates an image view for the color image to be used in rendering operations.
- *
- * @param logicalDevice The Vulkan logical device used to create the image and image view.
- * @param physicalDevice The Vulkan physical device used to allocate memory for the image.
- * @param msaaSamples The number of samples per pixel for multisampling (MSAA).
- */
 void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkSampleCountFlagBits msaaSamples)
 {
     VkFormat colorFormat = _swapchainColorFormat;
@@ -901,19 +667,6 @@ void maverik::vk::SwapchainContext::createColorResources(VkDevice logicalDevice,
     _colorImageView = Utils::createImageView(_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, logicalDevice, _mipLevels);
 }
 
-/**
- * @brief Creates the depth resources required for the Vulkan swapchain.
- *
- * This function initializes the depth image, allocates memory for it, creates
- * an image view for the depth image, and transitions the image layout to be
- * suitable for use as a depth-stencil attachment.
- *
- * @param logicalDevice The Vulkan logical device used for resource creation.
- * @param physicalDevice The Vulkan physical device used to query depth format and memory properties.
- * @param commandPool The command pool used to allocate command buffers for image layout transitions.
- * @param graphicsQueue The graphics queue used to execute the image layout transition commands.
- * @param msaaSamples The number of samples per pixel for multisampling (MSAA).
- */
 void maverik::vk::SwapchainContext::createDepthResources(const TextureImageCreationProperties& properties)
 {
     VkFormat depthFormat = Utils::findDepthFormat(properties._physicalDevice);
@@ -968,23 +721,6 @@ VkSamplerCreateInfo maverik::vk::SwapchainContext::getDefaultSamplerInfo(const V
     return samplerInfo;
 }
 
-/**
- * @brief Creates and allocates a single descriptor sets for the rendering context.
- *
- * This function sets up a single descriptor sets for a single texture image view and a single texture sampler
- * for each frame in flight, binding uniform buffers and texture samplers to the appropriate descriptor bindings.
- *
- * @param textureImageView The Vulkan image view representing the texture to be sampled.
- * @param textureSampler The Vulkan sampler used for sampling the texture.
- *
- * @throws std::runtime_error If descriptor set allocation fails.
- *
- * The function performs the following steps:
- * 1. Allocates descriptor sets from the descriptor pool for the maximum number of frames in flight.
- * 2. Configures descriptor buffer info for uniform buffers.
- * 3. Configures descriptor image info for the texture image view and sampler.
- * 4. Updates the descriptor sets with the uniform buffer and texture sampler bindings.
- */
 void maverik::vk::SwapchainContext::createSingleDescriptorSets(VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler)
 {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
@@ -1031,24 +767,6 @@ void maverik::vk::SwapchainContext::createSingleDescriptorSets(VkDevice logicalD
     }
 }
 
-/**
- * @brief Creates uniform buffers for the rendering context.
- *
- * This function initializes and allocates uniform buffers for each frame in flight.
- * It creates a buffer and allocates memory for each frame, ensuring that the buffers
- * are host-visible and host-coherent. The memory for each buffer is also mapped for
- * easy access during rendering operations.
- *
- * @details
- * - The size of each uniform buffer is determined by the size of the `UniformBufferObject`.
- * - The number of uniform buffers created corresponds to the `MAX_FRAMES_IN_FLIGHT` constant.
- * - The buffers are created with the `VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT` usage flag.
- * - The memory properties used are `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and
- *   `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` to allow CPU access and ensure memory coherency.
- * - The memory for each buffer is mapped immediately after allocation for future use.
- *
- * @throws std::runtime_error If buffer creation or memory mapping fails.
- */
 void maverik::vk::SwapchainContext::createUniformBuffers(VkDevice logicalDevice, VkPhysicalDevice physicalDevice)
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
