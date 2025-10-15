@@ -52,8 +52,24 @@
     };
 
     #ifdef NDEBUG
+        /**
+         * @brief Flag to enable or disable validation layers.
+         *
+         * This constant determines whether validation layers are enabled
+         * based on the build configuration. In release builds (NDEBUG defined),
+         * validation layers are disabled for performance reasons. In debug builds,
+         * validation layers are enabled to assist with debugging and development.
+         */
         const bool enableValidationLayers = false;
     #else
+        /**
+         * @brief Flag to enable or disable validation layers.
+         *
+         * This constant determines whether validation layers are enabled
+         * based on the build configuration. In release builds (NDEBUG defined),
+         * validation layers are disabled for performance reasons. In debug builds,
+         * validation layers are enabled to assist with debugging and development.
+         */
         const bool enableValidationLayers = true;
     #endif
 
