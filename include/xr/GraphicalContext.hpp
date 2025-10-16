@@ -27,6 +27,14 @@ namespace maverik {
             XrSystemId _XRsystemID; // The XR system ID
         };
 
+        /**
+         * @class GraphicalContext
+         * @brief A class to manage the graphical context for XR rendering.
+         *
+         * This class is responsible for creating and managing the graphical context required for rendering
+         * in an XR environment. It handles the creation of the Vulkan instance, initialization of the XR session,
+         * and management of visualized reference spaces.
+         */
         class GraphicalContext : public maverik::AGraphicalContext {
             public:
                 /**
@@ -101,11 +109,11 @@ namespace maverik {
                 void createVisualizedSpace();
 
             private:
-                XrInstance _XRinstance = XR_NULL_HANDLE;
-                XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
-                XrSession _XRsession = XR_NULL_HANDLE;
+                XrInstance _XRinstance = XR_NULL_HANDLE;        // The XR instance used for rendering
+                XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;     // The XR system ID
+                XrSession _XRsession = XR_NULL_HANDLE;          // The XR session handle
 
-                std::vector<XrSpace> _XRvisualizedSpaces;
+                std::vector<XrSpace> _XRvisualizedSpaces;       // Container for visualized reference spaces
 
         };
     }
