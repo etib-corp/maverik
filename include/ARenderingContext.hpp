@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include <vulkan.hpp>
+#include "maverik.hpp"
 #include <memory>
+#include <array>
 
 #include "Utils.hpp"
 
@@ -36,21 +37,33 @@
  * @var VulkanContext::graphicsQueueFamilyIndex
  * The index of the queue family that supports graphics operations.
  */
-struct  VulkanContext{
-    VkDevice logicalDevice;
-    VkPhysicalDevice physicalDevice;
-    VkQueue graphicsQueue;
-    VkRenderPass renderPass;
-    VkCommandPool commandPool;
-    uint32_t graphicsQueueFamilyIndex;
-};
+#ifdef __VK__
+    struct  VulkanContext{
+        VkDevice logicalDevice;
+        VkPhysicalDevice physicalDevice;
+        VkQueue graphicsQueue;
+        VkCommandPool commandPool;
+        uint32_t graphicsQueueFamilyIndex;
+        VkSurfaceKHR surface;
+        GLFWwindow* window;
+        VkSampleCountFlagBits msaaSamples;
+    };
+#elif __XR__
+    struct  VulkanContext{
+        VkDevice logicalDevice;
+        VkPhysicalDevice physicalDevice;
+        VkQueue graphicsQueue;
+        VkCommandPool commandPool;
+        uint32_t graphicsQueueFamilyIndex;
+        VkSampleCountFlagBits msaaSamples;
+    };
+    
+#endif
 
 namespace maverik {
     class ARenderingContext {
         public:
             virtual ~ARenderingContext() = default;
-
-            virtual void init() = 0;
 
             /**
              * @brief Retrieves the Vulkan context associated with this rendering context.
@@ -59,97 +72,6 @@ namespace maverik {
              */
             const std::shared_ptr<VulkanContext>& getVulkanContext() const {
                 return _vulkanContext;
-            }
-
-            /**
-             * @brief Creates a Vulkan render pass for the swapchain context.
-             *
-             * This function sets up a render pass with color, depth, and resolve attachments,
-             * supporting multisample anti-aliasing (MSAA) as specified by the msaaSamples parameter.
-             * The render pass is configured for use in a graphics pipeline, with appropriate
-             * subpass and dependency settings for color and depth outputs.
-             *
-             * @param physicalDevice The Vulkan physical device used to determine supported formats.
-             * @param logicalDevice The Vulkan logical device used to create the render pass.
-             * @param msaaSamples The number of samples per pixel for MSAA (multisample anti-aliasing).
-             *
-             * @throws std::runtime_error If the render pass creation fails.
-             */
-            void createRenderPass(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, VkSampleCountFlagBits msaaSamples)
-            {
-                auto swapchainSupport = maverik::Utils::querySwapChainSupport(physicalDevice, surface);
-                auto swapchainFormat = this->chooseSwapSurfaceFormat(swapchainSupport.formats);
-
-                VkAttachmentDescription colorAttachment{};
-                colorAttachment.format = swapchainFormat.format;
-                colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-                colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                colorAttachment.samples = msaaSamples;
-                colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-                VkAttachmentDescription depthAttachment{};
-                depthAttachment.format = maverik::Utils::findDepthFormat(physicalDevice);
-                depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-                depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-                depthAttachment.samples = msaaSamples;
-
-                VkAttachmentReference colorAttachmentRef{};
-                colorAttachmentRef.attachment = 0;
-                colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-                VkAttachmentReference depthAttachmentRef{};
-                depthAttachmentRef.attachment = 1;
-                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-                VkAttachmentDescription colorAttachmentResolve{};
-                colorAttachmentResolve.format = swapchainFormat.format;
-                colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-                colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-                VkAttachmentReference colorAttachmentResolveRef{};
-                colorAttachmentResolveRef.attachment = 2;
-                colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-                VkSubpassDescription subpass{};
-                subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-                subpass.colorAttachmentCount = 1;
-                subpass.pColorAttachments = &colorAttachmentRef;
-                subpass.pDepthStencilAttachment = &depthAttachmentRef;
-                subpass.pResolveAttachments = &colorAttachmentResolveRef;
-
-                VkSubpassDependency dependency{};
-                dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-                dependency.dstSubpass = 0;
-                dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-                dependency.srcAccessMask = 0;
-                dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-                dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-                std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
-                VkRenderPassCreateInfo renderPassInfo{};
-                renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-                renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-                renderPassInfo.pAttachments = attachments.data();
-                renderPassInfo.subpassCount = 1;
-                renderPassInfo.pSubpasses = &subpass;
-                renderPassInfo.dependencyCount = 1;
-                renderPassInfo.pDependencies = &dependency;
-
-                if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS) {
-                    throw std::runtime_error("failed to create render pass!");
-                }
             }
 
         private:
@@ -177,27 +99,58 @@ namespace maverik {
             }
 
         protected:
-
+            /**
+             * @brief Selects and initializes a suitable physical device (GPU) for Vulkan operations.
+             *
+             * This pure virtual function is responsible for picking a physical device from the available
+             * Vulkan-compatible devices on the system. Implementations should evaluate the devices based
+             * on required features, performance, and compatibility, and select the most appropriate one.
+             *
+             * @param instance The Vulkan instance used to enumerate physical devices.
+             */
             virtual void pickPhysicalDevice(VkInstance instance) = 0;
 
+            /**
+             * @brief Creates the logical device for the rendering context.
+             *
+             * This pure virtual function is responsible for initializing and creating
+             * the logical device, which is required for rendering operations. The
+             * implementation should handle all necessary setup and resource allocation
+             * for the logical device.
+             *
+             * @note Must be implemented by derived classes.
+             */
             virtual void createLogicalDevice() = 0;
 
-            virtual void createCommandPool() = 0;
+            /**
+             * @brief Creates a command pool for the rendering context.
+             *
+             * This function initializes and allocates the necessary resources for a command pool,
+             * which is used to manage the memory and lifecycle of command buffers in the rendering pipeline.
+             * Derived classes should implement this method to set up the command pool according to the
+             * specific graphics API or rendering backend being used.
+             *
+             * @note Must be called before allocating or recording command buffers.
+             */
+            virtual void createCommandPool();
 
-            virtual void createRenderPass() = 0;
-
-            virtual void createGraphicsPipeline(VkRenderPass renderPass) = 0;
-
+            /**
+             * @brief Retrieves the maximum usable sample count for multisampling.
+             *
+             * This function queries the physical device capabilities and determines the highest
+             * supported sample count that can be used for multisample anti-aliasing (MSAA).
+             *
+             * @return VkSampleCountFlagBits The maximum supported sample count for MSAA.
+             */
             VkSampleCountFlagBits getMaxUsableSampleCount() const;
 
-            VkDevice _logicalDevice;
-            VkPhysicalDevice _physicalDevice;
-            VkQueue _graphicsQueue;
-            VkCommandPool _commandPool;
-            VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+            VkDevice _logicalDevice;            // Logical device for rendering operations
+            VkPhysicalDevice _physicalDevice;   // Physical device (GPU) used for rendering
+            VkQueue _graphicsQueue;             // Graphics queue for submitting rendering commands
+            VkCommandPool _commandPool;         // Command pool for managing command buffers
+            VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;     // MSAA sample count
 
-            std::shared_ptr<VulkanContext> _vulkanContext;
+            std::shared_ptr<VulkanContext> _vulkanContext;      // Shared pointer to Vulkan context
 
-            VkRenderPass _renderPass;
     };
 }

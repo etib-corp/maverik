@@ -10,6 +10,8 @@
 
     #include "ARenderingContext.hpp"
 
+    #include "Vertex.hpp"
+
     #include "Utils.hpp"
 
     #include <map>
@@ -50,17 +52,45 @@
     };
 
     #ifdef NDEBUG
+        /**
+         * @brief Flag to enable or disable validation layers.
+         *
+         * This constant determines whether validation layers are enabled
+         * based on the build configuration. In release builds (NDEBUG defined),
+         * validation layers are disabled for performance reasons. In debug builds,
+         * validation layers are enabled to assist with debugging and development.
+         */
         const bool enableValidationLayers = false;
     #else
+        /**
+         * @brief Flag to enable or disable validation layers.
+         *
+         * This constant determines whether validation layers are enabled
+         * based on the build configuration. In release builds (NDEBUG defined),
+         * validation layers are disabled for performance reasons. In debug builds,
+         * validation layers are enabled to assist with debugging and development.
+         */
         const bool enableValidationLayers = true;
     #endif
 
 namespace maverik {
     namespace vk {
+        /**
+         * @brief Rendering context class for Vulkan.
+         *
+         * This class represents a rendering context for Vulkan, providing methods
+         * to initialize and manage Vulkan resources, including the window, surface,
+         * physical and logical devices, command pools, buffers, and synchronization
+         * objects. It inherits from the ARenderingContext abstract base class.
+         *
+         * The RenderingContext class is responsible for setting up the Vulkan environment,
+         * selecting a suitable physical device, creating a logical device, and managing
+         * various Vulkan resources required for rendering operations.
+         * @note This class is designed to be extended and customized for specific rendering
+         *      applications. It provides a foundation for building Vulkan-based rendering
+         */
         class RenderingContext : public ARenderingContext {
             public:
-                // Structs
-
                 /**
                  * @brief Window properties structure.
                  *
@@ -76,158 +106,37 @@ namespace maverik {
                 };
 
                 /**
-                 * @brief Uniform buffer object structure.
+                 * @brief Constructs a RenderingContext with the specified window properties and Vulkan instance.
                  *
-                 * This structure represents the data that will be passed to the vertex
-                 * shader as a uniform buffer. It contains the model, view, and projection
-                 * matrices used for rendering.
+                 * Initializes the rendering context using the provided window properties and Vulkan instance handle.
                  *
+                 * @param windowProperties The properties of the window to be used for rendering.
+                 * @param instance The Vulkan instance to associate with this rendering context.
                  */
-                struct UniformBufferObject {
-                    glm::mat4 model;    // Model matrix
-                    glm::mat4 view;     // View matrix
-                    glm::mat4 proj;     // Projection matrix
-                };
-
-                /**
-                 * @brief Vertex structure.
-                 *
-                 * This structure represents a vertex in the 3D space. It contains the
-                 * position, color, and texture coordinates of the vertex. It is used to
-                 * define the vertex data for rendering.
-                 *
-                 */
-                struct Vertex {
-                    glm::vec3 pos;          // Position of the vertex
-                    glm::vec3 color;        // Color of the vertex
-                    glm::vec2 texCoord;     // Texture coordinates of the vertex
-
-                    /*
-                     * @brief Get the binding description for the vertex.
-                     *
-                     * This function returns the binding description for the vertex,
-                     * which specifies how the vertex data is laid out in memory.
-                     *
-                     * @return VkVertexInputBindingDescription The binding description
-                     *         for the vertex.
-                     *
-                    */
-                    static VkVertexInputBindingDescription getBindingDescription() {
-                        VkVertexInputBindingDescription bindingDescription{};
-                        bindingDescription.binding = 0;
-                        bindingDescription.stride = sizeof(Vertex);
-                        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-                        return bindingDescription;
-                    }
-
-                    /*
-                     * @brief Get the attribute descriptions for the vertex.
-                     *
-                     * This function returns an array of attribute descriptions for the
-                     * vertex, which specify the format and offset of each attribute in
-                     * the vertex data.
-                     *
-                     * @return std::array<VkVertexInputAttributeDescription, 3> The
-                     *         attribute descriptions for the vertex.
-                     *
-                    */
-                    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-                        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-
-                        attributeDescriptions[0].binding = 0;
-                        attributeDescriptions[0].location = 0;
-                        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-                        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-                        attributeDescriptions[1].binding = 0;
-                        attributeDescriptions[1].location = 1;
-                        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-                        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-                        attributeDescriptions[2].binding = 0;
-                        attributeDescriptions[2].location = 2;
-                        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-                        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-                        return attributeDescriptions;
-                    }
-
-                    /*
-                     * @brief Equality operator for the Vertex structure.
-                     *
-                     * This operator compares two Vertex objects for equality based on
-                     * their position, color, and texture coordinates.
-                     *
-                     * @param other The other Vertex object to compare with.
-                     * @return true if the two Vertex objects are equal, false otherwise.
-                     *
-                    */
-                    bool operator==(const Vertex& other) const {
-                        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-                    }
-                };
-
-                /**
-                 * @struct RenderingContextProperties
-                 * @brief Holds Vulkan rendering context properties required for rendering operations.
-                 *
-                 * This structure encapsulates the essential Vulkan objects needed to set up and manage
-                 * a rendering context, including the Vulkan instance, render pass, texture image view,
-                 * and texture sampler.
-                 *
-                 */
-                struct RenderingContextProperties {
-                    /*
-                     * @brief Vulkan instance associated with the rendering context.
-                     *
-                     * This member holds the Vulkan instance that is created and used for
-                     * rendering operations. It is essential for initializing Vulkan and
-                     * creating other Vulkan objects.
-                     *
-                    */
-                    VkInstance _instance;
-                    /*
-                     * @brief Vulkan render pass used for rendering operations.
-                     *
-                     * This member holds the Vulkan render pass that defines the
-                     * framebuffer attachments and their formats. It is used to manage
-                     * the rendering process and how the images are presented.
-                     *
-                    */
-                    VkRenderPass _renderPass;
-
-                    /**
-                     * @brief Associates Vulkan image views with their corresponding samplers.
-                     *
-                     * This map stores pairs of VkImageView and VkSampler, allowing efficient lookup
-                     * of the sampler used for a particular image view. It is typically used in rendering
-                     * contexts to manage texture resources and their sampling configurations.
-                     */
-                    std::map<VkImageView, VkSampler> _textureImageViewsAndSamplers;
-                };
-
-                // Constructors
-                RenderingContext(const WindowProperties &windowProperties, const RenderingContextProperties &renderingContextProperties);
+                RenderingContext(const WindowProperties &windowProperties, VkInstance instance);
 
                 // Destructor
                 ~RenderingContext();
-
-                void init() override {};
 
             protected:
                 GLFWwindow *_window;                    // Pointer to the GLFW window
                 VkSurfaceKHR _surface;                  // Vulkan surface for rendering
                 VkQueue _presentQueue;                  // Vulkan queue for presentation
 
-                VkPipelineLayout _pipelineLayout;       // Vulkan pipeline layout
-                VkPipeline _graphicsPipeline;           // Vulkan graphics pipeline
-
-                void createGraphicsPipeline(VkRenderPass renderPass);
-
                 std::vector<Vertex> _vertices;          // Vector of vertices for rendering
                 std::vector<uint32_t> _indices;         // Vector of indices for rendering
 
+                /**
+                 * @brief Creates and initializes the vertex buffer required for rendering.
+                 *
+                 * This function allocates GPU memory and sets up the vertex buffer
+                 * to store vertex data used in rendering operations. It should be called
+                 * during the initialization phase before issuing any draw commands that
+                 * require vertex input.
+                 *
+                 * @note Ensure that the necessary Vulkan resources and device context
+                 *       are properly initialized before calling this function.
+                 */
                 void createVertexBuffer();
 
                 VkBuffer _vertexBuffer;                                 // Vulkan buffer for vertex data
@@ -236,42 +145,123 @@ namespace maverik {
                 VkBuffer _indexBuffer;                                  // Vulkan buffer for index data
                 VkDeviceMemory _indexBufferMemory;                      // Vulkan memory for index buffer
 
-                std::vector<VkBuffer> _uniformBuffers;                  // Vector of Vulkan buffers for uniform data
-                std::vector<VkDeviceMemory> _uniformBuffersMemory;      // Vector of Vulkan memory for uniform buffers
-                std::vector<void*> _uniformBuffersMapped;               // Vector of mapped pointers to uniform buffer data
-
+                /**
+                 * @brief Creates and initializes the index buffer for rendering.
+                 *
+                 * This function allocates GPU memory and sets up the index buffer
+                 * required for indexed drawing operations. It typically uploads
+                 * index data to the buffer and prepares it for use in the rendering
+                 * pipeline.
+                 *
+                 * @note Must be called before issuing draw commands that use indexed rendering.
+                 */
                 void createIndexBuffer();
-                void createUniformBuffers();
-
-                VkDescriptorPool _descriptorPool;                       // Vulkan descriptor pool for managing descriptor sets
-                std::vector<VkDescriptorSet> _descriptorSets;           // Vector of Vulkan descriptor sets for uniform data
-                VkDescriptorSetLayout _descriptorSetLayout;             // Vulkan descriptor set layout for uniform data
-                VkDebugUtilsMessengerEXT _debugMessenger;               // Vulkan debug messenger for validation layers
-
-                void setupDebugMessenger(VkInstance instance);
-                void createDescriptorSetLayout();
-                void createDescriptorPool();
-                void createDescriptorSets(std::map<VkImageView, VkSampler> imagesViewsAndSamplers);
 
                 std::vector<VkCommandBuffer> _commandBuffers;           // Vector of Vulkan command buffers for rendering
 
+                /**
+                 * @brief Allocates and records command buffers required for rendering operations.
+                 *
+                 * This function creates the necessary Vulkan command buffers for the rendering context.
+                 * It typically allocates one command buffer per framebuffer and records the commands
+                 * needed to render each frame. The command buffers are used during the rendering loop
+                 * to submit drawing commands to the GPU.
+                 *
+                 * @note This function should be called after the Vulkan device and swapchain have been initialized.
+                 *       It may need to be called again if the swapchain is recreated (e.g., on window resize).
+                 *
+                 * @throws std::runtime_error if command buffer allocation or recording fails.
+                 */
                 void createCommandBuffers();
 
                 std::vector<VkSemaphore> _imageAvailableSemaphores;     // Vector of Vulkan semaphores for image availability
                 std::vector<VkSemaphore> _renderFinishedSemaphores;     // Vector of Vulkan semaphores for rendering completion
                 std::vector<VkFence> _inFlightFences;                   // Vector of Vulkan fences for synchronization
 
+                /**
+                 * @brief Creates synchronization objects required for rendering operations.
+                 *
+                 * This function initializes synchronization primitives such as semaphores and fences,
+                 * which are used to coordinate rendering and presentation between the CPU and GPU.
+                 * It should be called during the setup phase of the rendering context.
+                 *
+                 * @note Must be called before starting the rendering loop.
+                 * @throws std::runtime_error if synchronization object creation fails.
+                 */
                 void createSyncObjects();
 
+                /**
+                 * @brief Initializes the application window with the specified dimensions and title.
+                 *
+                 * This function sets up a window for rendering, using the provided width, height, and title.
+                 * It should be called before any rendering operations are performed.
+                 *
+                 * @param width The width of the window in pixels.
+                 * @param height The height of the window in pixels.
+                 * @param title The title of the window.
+                 */
                 void initWindow(unsigned int width, unsigned int height, const std::string &title);
+
+                /**
+                 * @brief Creates a Vulkan surface for rendering.
+                 *
+                 * This function initializes the Vulkan surface associated with the given VkInstance.
+                 * The created surface is typically used for presenting rendered images to a window or display.
+                 *
+                 * @param instance The Vulkan instance with which to create the surface.
+                 *
+                 * @note The specific platform-dependent details (such as window handles) required for surface creation
+                 *       should be handled internally or provided elsewhere in the class.
+                 * @throws std::runtime_error If surface creation fails.
+                 */
                 void createSurface(VkInstance instance);
-                void pickPhysicalDevice(VkInstance instance);
-                void createLogicalDevice();
-                void createCommandPool();
+
+                /**
+                 * @brief Selects and assigns a suitable physical device (GPU) for Vulkan operations.
+                 *
+                 * This method scans available physical devices on the system and picks one that
+                 * meets the application's requirements. The selected device will be used for all
+                 * subsequent Vulkan operations.
+                 *
+                 * @param instance The Vulkan instance used to enumerate physical devices.
+                 */
+                void pickPhysicalDevice(VkInstance instance) override;
+
+                /**
+                 * @brief Creates and initializes the logical device for the rendering context.
+                 *
+                 * This method sets up the logical device, which is required for issuing rendering commands
+                 * and managing resources in the Vulkan API. It should be called after selecting the physical device
+                 * and before performing any rendering operations.
+                 *
+                 * @throws std::runtime_error If the logical device creation fails.
+                 */
+                void createLogicalDevice() override;
+
+                /**
+                 * @brief Creates the Vulkan command pool for command buffer allocation.
+                 *
+                 * This method initializes the command pool required for recording and submitting
+                 * command buffers to the GPU. It should be called during the rendering context
+                 * setup phase. The implementation may configure the command pool with appropriate
+                 * flags and associate it with the correct queue family index.
+                 *
+                 * @note This method overrides a virtual function from the base class.
+                 *
+                 * @throws std::runtime_error If the command pool creation fails.
+                 */
+                void createCommandPool() override;
 
             private:
+                /**
+                 * @brief Retrieves the maximum usable sample count for multisampling.
+                 *
+                 * This function queries the physical device's properties to determine the highest
+                 * supported sample count that can be used for multisample anti-aliasing (MSAA).
+                 *
+                 * @return VkSampleCountFlagBits The maximum supported sample count for MSAA.
+                 */
                 VkSampleCountFlagBits getMaxUsableSampleCount();
-                void createSingleDescriptorSets(VkImageView textureImageView, VkSampler textureSampler);
 
         };
     }

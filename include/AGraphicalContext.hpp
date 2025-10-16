@@ -15,10 +15,31 @@
 
 
 namespace maverik {
+    /**
+     * @brief Abstract base class representing a graphical context for Vulkan rendering.
+     *
+     * This class serves as a base for different graphical context implementations,
+     * such as those for different windowing systems (e.g., GLFW, SDL). It
+     * provides an interface for initializing and managing the Vulkan instance,
+     * rendering context, and swapchain context.
+     *
+     * Derived classes must implement methods for creating the Vulkan instance
+     * and retrieving required instance extensions.
+     */
     class AGraphicalContext {
         public:
             virtual ~AGraphicalContext() = default;
 
+            /**
+             * @brief Retrieves the list of required instance extensions for the graphical context.
+             *
+             * This pure virtual function must be implemented by derived classes to provide
+             * a list of Vulkan instance extensions that are necessary for the graphical context
+             * to function correctly. These extensions may include platform-specific surface
+             * extensions or other features required by the application.
+             *
+             * @return A vector of strings representing the names of the required instance extensions.
+             */
             virtual std::vector<std::string> getInstanceExtensions() = 0;
 
             /**
@@ -54,10 +75,19 @@ namespace maverik {
             }
 
         protected:
+            /**
+             * @brief Creates and initializes the Vulkan instance for the graphical context.
+             *
+             * This pure virtual function must be implemented by derived classes to set up
+             * the Vulkan instance, including specifying application information, enabled
+             * extensions, and validation layers as needed.
+             *
+             * @note This function should be called before any Vulkan operations are performed.
+             */
             virtual void createInstance() = 0;
 
-            std::shared_ptr<ARenderingContext> _renderingContext;
-            std::shared_ptr<ASwapchainContext> _swapchainContext;
-            VkInstance _instance = VK_NULL_HANDLE;
+            std::shared_ptr<ARenderingContext> _renderingContext;   // Rendering context managing Vulkan resources
+            std::shared_ptr<ASwapchainContext> _swapchainContext;   // Swapchain context for managing swapchain-related resources
+            VkInstance _instance = VK_NULL_HANDLE;                  // Vulkan instance for the graphical context
     };
 }

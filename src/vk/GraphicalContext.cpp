@@ -22,54 +22,82 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL defaultDebugCallback(VkDebugUtilsMessageSe
 // Public methods //
 ////////////////////
 
-/*
-** Construct a new GraphicalContext object.
-**
-** This constructor is used to create a new GraphicalContext object in a vulkan native context.
-*/
 maverik::vk::GraphicalContext::GraphicalContext()
 {
     _appName = "Hello, World !";
     _appVersion = new Version(1, 0, 0);
     _engineName = "Maverik";
     _engineVersion = new Version(1, 0, 0);
+
+    this->createInstance();
+
+    maverik::vk::RenderingContext::WindowProperties windowProperties = {
+        .width = 800,
+        .height = 600,
+        .title = _appName
+    };
+    _renderingContext = std::make_shared<maverik::vk::RenderingContext>(windowProperties, _instance);
+
+    auto vulkanContext = _renderingContext->getVulkanContext();
+    maverik::vk::SwapchainContext::SwapchainContextCreationProperties swapchainProperties = {
+        ._surface = vulkanContext->surface,
+        ._physicalDevice = vulkanContext->physicalDevice,
+        ._logicalDevice = vulkanContext->logicalDevice,
+        ._window = vulkanContext->window,
+        ._msaaSamples = vulkanContext->msaaSamples,
+        ._commandPool = vulkanContext->commandPool,
+        ._graphicsQueue = vulkanContext->graphicsQueue,
+        ._instance = _instance
+    };
+
+    _swapchainContext = std::make_shared<maverik::vk::SwapchainContext>(swapchainProperties);
 }
 
-/*
-** Construct a new GraphicalContext object.
-**
-** This constructor is used to create a new GraphicalContext object in a vulkan native context.
-** It initializes the application name, application version, engine name and engine version.
-**
-** @param appName the application name
-** @param appVersion the application version
-** @param engineName the engine name
-** @param engineVersion the engine version
-**
-*/
-maverik::vk::GraphicalContext::GraphicalContext(const std::string &appName, const Version &appVersion, const std::string &engineName, const Version &engineVersion)
+maverik::vk::GraphicalContext::GraphicalContext(const std::string &appName, const Version &appVersion, const std::string &engineName, const Version &engineVersion, unsigned int windowWidth, unsigned int windowHeight)
 {
     _appName = appName;
     _appVersion = new Version(appVersion);
     _engineName = engineName;
     _engineVersion = new Version(engineVersion);
+
+    this->createInstance();
+
+    maverik::vk::RenderingContext::WindowProperties windowProperties = {
+        .width = windowWidth,
+        .height = windowHeight,
+        .title = _appName
+    };
+    _renderingContext = std::make_shared<maverik::vk::RenderingContext>(windowProperties, _instance);
+
+    auto vulkanContext = _renderingContext->getVulkanContext();
+    maverik::vk::SwapchainContext::SwapchainContextCreationProperties swapchainProperties = {
+        ._surface = vulkanContext->surface,
+        ._physicalDevice = vulkanContext->physicalDevice,
+        ._logicalDevice = vulkanContext->logicalDevice,
+        ._window = vulkanContext->window,
+        ._msaaSamples = vulkanContext->msaaSamples,
+        ._commandPool = vulkanContext->commandPool,
+        ._graphicsQueue = vulkanContext->graphicsQueue,
+        ._instance = _instance
+    };
+
+    _swapchainContext = std::make_shared<maverik::vk::SwapchainContext>(swapchainProperties);
 }
 
-/*
-** Destructor for the GraphicalContext class.
-*/
 maverik::vk::GraphicalContext::~GraphicalContext()
 {
+    delete _appVersion;
+    delete _engineVersion;
+
+    if (enableValidationLayers) {
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
+        if (func != nullptr) {
+            func(_instance, nullptr, nullptr);
+        }
+    }
+    vkDestroyInstance(_instance, nullptr);
 }
 
-/*
-** Create the Vulkan instance.
-**
-** This function is used to create the Vulkan instance in a vulkan native context.
-** It initializes the application name, application version, engine name and engine version (into the vulkan instance).
-**
-** @return void
-*/
 void maverik::vk::GraphicalContext::createInstance()
 {
     if (enableValidationLayers && !this->checkValidationLayerSupport()) {
@@ -145,14 +173,6 @@ void maverik::vk::GraphicalContext::createInstance()
     }
 }
 
-
-/*
-** Get the required extensions for the instance.
-**
-** On MacOS, the VK_KHR_portability_enumeration extension is required.
-**
-** @return the required extensions for the instance
-*/
 std::vector<std::string> maverik::vk::GraphicalContext::getInstanceExtensions()
 {
     uint32_t glfwExtensionCount = 0;
@@ -170,16 +190,6 @@ std::vector<std::string> maverik::vk::GraphicalContext::getInstanceExtensions()
 // Private methods //
 /////////////////////
 
-/*
-** Populate the debug messenger create info.
-**
-** This function is used to create the debug messenger for the instance.
-** It is used to log the debug messages from the Vulkan API.
-**
-** @param createInfo the debug messenger create info
-**
-** @return void
-*/
 void maverik::vk::GraphicalContext::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo, debugCallback_t debugCallback)
 {
     createInfo = {};
@@ -189,14 +199,6 @@ void maverik::vk::GraphicalContext::populateDebugMessengerCreateInfo(VkDebugUtil
     createInfo.pfnUserCallback = debugCallback;
 }
 
-/*
-** Check if the validation layers are available on the system.
-**
-** Be careful on MacOS, the validation layers are not available by default.
-** You need to install them manually or use MoltenVK.
-**
-** @return true if the validation layers are available, false otherwise
-*/
 bool maverik::vk::GraphicalContext::checkValidationLayerSupport()
 {
     uint32_t layerCount;
@@ -220,4 +222,3 @@ bool maverik::vk::GraphicalContext::checkValidationLayerSupport()
     }
     return true;
 }
-
