@@ -17,6 +17,15 @@ struct PlatformData {
 
 namespace maverik {
     namespace xr {
+        /**
+         * @class AndroidPlatform
+         * 
+         * @brief A class to handle Android-specific OpenXR platform initialization and instance creation.
+         * 
+         * This class is responsible for initializing the OpenXR loader for Android and providing
+         * the necessary Android-specific instance creation information. It utilizes the `PlatformData`
+         * structure to obtain the Android application VM and activity required for OpenXR initialization.
+         */
         class AndroidPlatform {
             public:
 
@@ -47,7 +56,7 @@ namespace maverik {
                 XrBaseInStructure *getInstanceCreateInfoAndroid() { return reinterpret_cast<XrBaseInStructure *>(&_instanceCreateInfoAndroid); }
 
             protected:
-                XrInstanceCreateInfoAndroidKHR _instanceCreateInfoAndroid{};
+                XrInstanceCreateInfoAndroidKHR _instanceCreateInfoAndroid{};    // Android-specific instance creation information
             private:
         };
 
