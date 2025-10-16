@@ -30,6 +30,14 @@ namespace maverik {
             VkInstance _vulkanInstance;         // Vulkan instance associated with the XR session
         };
 
+        /**
+         * @brief XR Rendering Context class.
+         *
+         * This class manages the rendering context for XR applications, integrating with OpenXR and Vulkan.
+         * It extends the base ARenderingContext class to provide XR-specific functionality, including
+         * physical device selection and logical device creation tailored for XR rendering.
+         *
+         */
         class RenderingContext : public maverik::ARenderingContext {
             public:
                 /**
@@ -77,9 +85,9 @@ namespace maverik {
                 void createLogicalDevice() override;
 
             private:
-                XrInstance _XRinstance = XR_NULL_HANDLE;
-                XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;
-                VkInstance _vulkanInstance = VK_NULL_HANDLE;
+                XrInstance _XRinstance = XR_NULL_HANDLE;        // The XR instance used for rendering
+                XrSystemId _XRsystemID = XR_NULL_SYSTEM_ID;     // The XR system ID for the rendering context
+                VkInstance _vulkanInstance = VK_NULL_HANDLE;    // The Vulkan instance associated with the XR session
 
         };
     }
