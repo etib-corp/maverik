@@ -47,19 +47,6 @@ namespace maverik {
                 // Destructor
                 ~RenderingContext() override;
 
-                /**
-                 * @brief Initializes the Vulkan rendering context.
-                 *
-                 * This function performs the following steps:
-                 * 1. Selects a suitable physical device (GPU) for Vulkan operations.
-                 * 2. Creates a logical device to interface with the selected physical device.
-                 * 3. Sets up a command pool for allocating Vulkan command buffers.
-                 * 4. Determines the maximum usable multisample anti-aliasing (MSAA) sample count.
-                 * 5. Initializes the VulkanContext with the created devices, queue, command pool, queue family index, and MSAA settings.
-                 *
-                 */
-                void init() override;
-
             protected:
 
                 /**

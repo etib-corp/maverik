@@ -118,14 +118,6 @@ namespace maverik {
                 // Destructor
                 ~RenderingContext();
 
-                /**
-                 * @brief Initializes the rendering context.
-                 *
-                 * This method overrides the base class implementation to perform any necessary
-                 * initialization for the rendering context. Currently, it does not perform any actions.
-                 */
-                void init() override {};
-
             protected:
                 GLFWwindow *_window;                    // Pointer to the GLFW window
                 VkSurfaceKHR _surface;                  // Vulkan surface for rendering

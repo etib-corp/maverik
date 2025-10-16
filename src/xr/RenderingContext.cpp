@@ -11,15 +11,6 @@
 maverik::xr::RenderingContext::RenderingContext(const RenderingContextPropertiesXR &properties)
     : _XRinstance(properties._XRinstance), _XRsystemID(properties._XRsystemID), _vulkanInstance(properties._vulkanInstance)
 {
-    init();
-}
-
-maverik::xr::RenderingContext::~RenderingContext()
-{
-}
-
-void maverik::xr::RenderingContext::init()
-{
     pickPhysicalDevice(_vulkanInstance);
     createLogicalDevice();
     createCommandPool();
@@ -28,6 +19,9 @@ void maverik::xr::RenderingContext::init()
     _vulkanContext = std::make_shared<VulkanContext>(_logicalDevice, _physicalDevice, _graphicsQueue, _commandPool, Utils::findQueueFamilies(_physicalDevice).graphicsFamily.value(), _msaaSamples);
 }
 
+maverik::xr::RenderingContext::~RenderingContext()
+{
+}
 
 void maverik::xr::RenderingContext::pickPhysicalDevice(VkInstance instance)
 {

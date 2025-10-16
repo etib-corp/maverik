@@ -66,15 +66,6 @@ namespace maverik {
             virtual ~ARenderingContext() = default;
 
             /**
-             * @brief Initializes the rendering context.
-             *
-             * This pure virtual function must be implemented by derived classes to set up
-             * the rendering context, including Vulkan instance creation, device selection,
-             * swapchain setup, and other necessary configurations.
-             */
-            virtual void init() = 0;
-
-            /**
              * @brief Retrieves the Vulkan context associated with this rendering context.
              *
              * @return A constant reference to a shared pointer of VulkanContext.
